@@ -1,2 +1,12 @@
 \subsection{Data balancing}
+As for the data balancing step, here are some important characteristics that our method should focus on:
+\begin{enumerate}[label=$\bullet$]
+\item The balancing should be generalizable and applicable to different levels of imbalancement and subsequent classification algorithms;
+\item It should mantain the actual class structure and represent accurately the minority class pattern;
+\item It should support a correct class identification.
+\end{enumerate}
+   
+We hereby summarize the main features of the data-level balancing algorithms that we implemented in the pipeline. Typically, these methods are categorized into three main groups: synthetic samplers, resamplrs and hybrid samplers.
 
+\textbf{SMOTE} (Synthetic Minority Oversampling Technique) is probably the most known of the balancing methods. 
+SMOTE is an over-sampling technique designed to address class imbalance. It generates synthetic minority class samples by considering feature vectors. For each minority class sample, it calculates the differences between the sample and its nearest neighbors. A random scaling factor between 0 and 1 is applied to these differences, and the results are added to the original sample's feature vector. This process creates new data points along line segments between features, effectively making the decision boundary of the minority class more inclusive. This approach helps rebalance class distribution and improves model performance in imbalanced datasets.
