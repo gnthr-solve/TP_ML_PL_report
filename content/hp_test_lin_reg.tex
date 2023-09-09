@@ -1,0 +1,44 @@
+\subsection{Hypothesis testing}
+The \textbf{Hypothesis-T-Test} class is designed to facilitate hypothesis testing, specifically t-tests, on datasets stored in CSV format. It enables us to compare the effectiveness of different combinations of data balancing and classification methods in terms of key performance measures. The t-test is an appropriate choice in this case, where we want to apply multiple pairwise comparisons of continuous variables (the target measures). Hereby is an overview of its functionality.
+
+The class constructor accepts several essential parameters: 
+\begin{enumerate}[label=$\bullet$]
+\item \textbf{target list}: a list of target performance measures;
+\item \textbf{column bal}: the name of the file column addressing the data balancing method
+\item \textbf{column clas}: the name of the file column addressing the classifier method
+\item \textbf{test combination balancers}: a list of tuples, each containing a combination of two balancing methods for comparison
+\item \textbf{test combination classifiers}: a list of tuples, each containing a combination of two classifier methods for comparison
+\item \textbf{alpha}: the test significance level, set by default to 0.05, a typical choice in hypothesis testing. 
+\end{enumerate}
+
+The core functionality of the class resides in the \textbf{perform-t-test} method, which consists of the following steps:
+\begin{enumerate}[label=$\bullet$]
+\item Initialization of an empty list, \textbf{results}, to store the outcomes of the t-tests.
+\item For each target performance measure, the class iterates through the provided combinations of balancing methods and classifier methods.
+\item The data is filtered based on the selected balancing or classifier method, creating two distinct groups.
+\item A t-test is conducted on the two groups, producing statistical values such as the t-statistic and p-value.
+\item The mean values of the target performance measure are calculated for each group.
+\item The test results, including the target performance measure, compared methods, mean values, t-statistic, and p-value, are organized into dictionaries and appended to the \textbf{results} list.
+\item After completing all t-tests, the results are compiled into a pandas DataFrame and saved to a CSV file. This file serves as a comprehensive record of the statistical comparisons.
+\end{enumerate}
+
+\subsection{Linear regression Analysis}
+Another crucial step in our pipeline is to thoroughly explore the relationships between our target measures and the parameters of interest that we allowed to vary in the preceding stages of our project. To achieve this, we've developed the \textbf{Linear Regression Analysis} class. This class empowers us to conduct in-depth investigations into how specific predictor variables influence our chosen target metrics. In the following, we will delve into the functionality of this class and showcase its applications in our data analysis process.
+After loading a dataset from a specified CSV file and storing it in a pandas DataFrame, the data need to be set up for regression analysis. This is done through the \textbf{prepare data} method, which takes two sets of input variables: categorical and continuous regressors. The categorical variables are encoded into binary format and combined with the continuous regressors to create the input matrix \textbf{X}.
+The actual analysis is then implemented in the function \textbf{perform linear regression}, which takes the following inputs: 
+\begin{enumerate}[label=$\bullet$]
+\item \textbf{target}: the target metric that we want to predict
+\item \textbf{regressors}: a list of predictor variables used in the regression analysis 
+\end{enumerate}
+The function performs the following steps: 
+\begin{enumerate}[label=$\bullet$]
+\item Splits the dataset into training and testing sets.
+\item Fits a linear regression model to the training data.
+\item Predicts the target metric for the test data.
+\item Calculates various regression metrics, including mean squared error, mean absolute error, coefficient values, coefficient of determination (R-squared), F-value, and p-value.
+\item Stores the results in a pandas DataFrame and returns it.
+\end{enumerate}
+
+Finally, the method \textbf{plot target vs regressors} repeats the analysis and loops through each regressor in the regressors list. For each regressor, the corresponding predicted values \textbf{y values} are calculated as a sum of the intercept and the product between the regression coefficients and the data. Next, a scatter plot is produced to graphically observe the relationship.
+
+
