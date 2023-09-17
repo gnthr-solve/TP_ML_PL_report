@@ -6,7 +6,9 @@ As for the data balancing step, here are some important characteristics that our
 \item It should support a correct class identification.
 \end{enumerate}
    
-We hereby summarize the main features of the data-level balancing algorithms that we implemented in the pipeline. Typically, these methods are categorized into three main groups: synthetic samplers, resamplrs and hybrid samplers.
+We hereby summarize the main features of the data-level balancing algorithms that we implemented in the pipeline. Typically, these methods are categorized into three main groups: synthetic samplers, resamplers and hybrid samplers.
 
 \textbf{SMOTE} (Synthetic Minority Oversampling Technique) is probably the most known of the balancing methods. 
-SMOTE is an over-sampling technique designed to address class imbalance. It generates synthetic minority class samples by considering feature vectors. For each minority class sample, it calculates the differences between the sample and its nearest neighbors. A random scaling factor between 0 and 1 is applied to these differences, and the results are added to the original sample's feature vector. This process creates new data points along line segments between features, effectively making the decision boundary of the minority class more inclusive. This approach helps rebalance class distribution and improves model performance in imbalanced datasets.
+SMOTE is an over-sampling technique which generates synthetic minority class samples by considering feature vectors. For each minority class sample, it calculates the differences between the sample and its $k$ nearest neighbors, with $k$ being selected depending on the needed amount of oversampled instances. A random scaling factor between 0 and 1 is applied to these differences, and the results are added to the original sample's feature vector. This process creates new data points along line segments between features, effectively making the decision boundary of the minority class more inclusive. We decided to include SMOTE in our study as it is a reference method, even though important drawbacks have been detected in previous articles, such as presenting computational complexity quadratic in the size of the minority class and distortion of its distribution due to localization of the selected target points.
+
+\textbf{ADASYN} is another synthetic sampler 
