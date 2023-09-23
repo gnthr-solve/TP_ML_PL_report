@@ -42,6 +42,8 @@ In the following we give a more detailed description of the created pipeline ver
 
 \subsection{Generator Generalisation and Localised Iteration Approach}
 
+%......
+
 
 \subsection{Fast Pipeline Approach}
 
@@ -57,6 +59,186 @@ between the individual pipeline components, which again incurs the overhead due 
 The key idea of the last pipeline approach is to reduce the impact of these sources of overhead by creating large numpy arrays of adequate dimensions once,
 giving each component of the pipeline a reference to the data instead of a copy, and applying the algorithms directly to sections of these large arrays.
 
+To this end we introduce an intermediate parent class which only has an empty dictionary as a class attribute:
+\begin{lstlisting}[language=Python, numbers=none]
+class Data():
+
+    	data_dict = {}
+\end{lstlisting}
+
+The other classes inherit from \texttt{Data} and modify the contents of the \texttt{data\_dict} dictionary.
+To direct this process and create the necessary \texttt{numpy} arrays we created the \texttt{Assessor} class.
+The \texttt{Assessor} takes in the \texttt{test\_size}, a list of dictionaries for the generator, and as before, a dictionary each for the balancers and classifiers to be used.
+Its \texttt{\_\_init\_\_} method looks like this
+
+\begin{lstlisting}[language=Python, numbers=none]
+class Assessor(Data):
+
+    def __init__(self, test_size, generation_dict_list, balancers_dict, classifiers_dict):
+
+        Data.data_dict = {}
+
+        self.test_size = test_size
+        self.generation_dict_list = generation_dict_list
+
+        balancer_list = [(name, balancer) for name, balancer in balancers_dict.items()]
+        
+        clsf_list = [(name, classifier) for name, classifier in classifiers_dict.items()]
+
+        self.exp_dim = (len(generation_dict_list), len(balancers_dict), len(classifiers_dict))
+        
+        self.data_dict['assignment_dict'] = {(a, b, c): [gen_dict, bal, clsf]
+                                             for (a, gen_dict), (b, bal), (c, clsf)
+                                             in product(enumerate(generation_dict_list), 
+                                                        enumerate(balancer_list), 
+                                                        enumerate(clsf_list)
+                                                        )
+                                            }
+
+\end{lstlisting}
+
+Here the baseline dimensions for the \texttt{numpy} arrays that are to be created are calculated and saved in \texttt{self.exp\_dim} and 
+the generation dictionaries and the names and classes corresponding to the balancers and classifiers are stored in the \texttt{assignment\_dict} 
+under a three dimensional tuple key. 
+This dictionary is essential to assign the methods to the correct positions in the later steps and the correct labels in the output files.
+
+After initialisation the following methods are to be called in sequence if one wishes to execute the pipeline. 
+In the generation function below we first check for the largest number of samples and dimensions to accommodate, 
+then four \texttt{numpy} arrays of that size are created and filled with\texttt{np.nan} values.
+Subsequently we iterate over the generation dictionaries in the stored list and assign a generation index to place the generated data in the correct part of the raw data arrays.
+For each generation dictionary the \texttt{FMPL\_Generator} class is instantiated and its \texttt{prepare\_data} method is executed.
+\begin{lstlisting}[language=Python, numbers=none]
+def generate(self):     
+
+	test_size = self.test_size
+	table_infos = [extract_table_info(generation_dict) for generation_dict in self.generation_dict_list]
+	
+	self.d = max([info[0] for info in table_infos])
+	n = max([info[1] for info in table_infos])
+	a = self.exp_dim[0]
+	        
+	trainset_size = int((1-test_size)*n)
+	testset_size = int(test_size*n)
+	
+	self.data_dict['org_X_train'] = np.full(shape = (a, trainset_size, self.d), fill_value = np.nan)
+	self.data_dict['org_y_train'] = np.full(shape = (a, trainset_size,), fill_value = np.nan)
+	
+	self.data_dict['org_X_test'] = np.full(shape = (a, testset_size, self.d), fill_value = np.nan)
+	self.data_dict['org_y_test'] = np.full(shape = (a, testset_size,), fill_value = np.nan)
+	
+	for i, generation_dict in enumerate(self.generation_dict_list):
+		generation_dict['gen_index'] = i
+		generator = FMPL_Generator(**generation_dict)
+		generator.prepare_data(self.test_size)
+\end{lstlisting}
+
+The \texttt{FMPL\_Generator} doesn't differ much from the generator in the previous section apart from inheriting from \texttt{Data} and the \texttt{prepare\_data} method,
+which now doesn't return the split raw data but instead inscribes it in the data arrays instantiated earlier.
+
+The next method in line is the \texttt{balance} method. It is called with \texttt{bal\_params\_dicts} as a parameter that defaults to an empty dictionary.
+This parameter is supposed to be a dictionary of dictionaries where each key should be a balancers name and the corresponding value should be a dictionary 
+that contains the instantiation parameters of the balancer, most importantly the \texttt{'sampling_strategy'}.
+
+\begin{lstlisting}[language=Python, numbers=none]
+    def balance(self, bal_params_dicts = {}):
+
+        a, b, c = self.exp_dim
+        y_train = self.data_dict['org_y_train']
+
+        default_strategy = 'auto'
+        max_c1 = max([np.sum(y_train[data_ind] == 1) for data_ind in range(a)])
+        max_total_samples = 0
+
+        for data_ind in range(a):
+            #check if a balancer parameter dict is given
+            if bal_params_dicts:
+                #iterate over the parameter dictionaries that are given
+                for bal_dict in bal_params_dicts.values():
+
+                    max_total_samples = max(max_total_samples, sum(calculate_no_samples(y_train[data_ind], bal_dict['sampling_strategy']).values()))
+
+            #compare to default strategy if not every balancer has a dict
+            if len(bal_params_dicts) < b:
+                max_total_samples = max(max_total_samples, sum(calculate_no_samples(y_train[data_ind], default_strategy).values()))
+        
+        k = max_c1 + max_total_samples
+
+        self.data_dict['bal_X_train'] = np.full(shape = (a, b, k, self.d), fill_value = np.nan)
+        self.data_dict['bal_y_train'] = np.full(shape = (a, b, k, ), fill_value = np.nan)
+
+        data_balancer = FMPL_DataBalancer(bal_params_dicts)
+        
+        data_balancer.balance_data()
+\end{lstlisting}
+
+The most complicated part of this step was to find the maximal number of samples for which to reserve space in the balanced data arrays.
+\texttt{Imblearn} balancers allow a wide range of options to set the \texttt{'sampling_strategy'} and depending on which strategy the user settles on,
+the final amount of samples varies drastically. This approach to the pipeline in general sacrifices memory consumption for faster execution time, 
+but optimally the created arrays should not be much larger than they have to be to accommodate the data. 
+To achieve an array that is as small as possible but as large as necessary the \texttt{calculate_no_samples} function calculates the number of samples
+that can be expected depending on the sampling strategy and uses the maximum number among all balancers and datasets to be balanced.
+
+\begin{lstlisting}[language=Python, numbers=none]
+    def clsf_pred(self):
+
+        a, n = np.shape(self.data_dict['org_y_test'])
+
+        self.data_dict['clsf_predictions_y'] = np.full(shape = self.exp_dim + (n,), fill_value = np.nan)
+        self.data_dict['clsf_predictions_proba'] = np.full(shape = self.exp_dim + (n, 2), fill_value = np.nan)
+        self.data_dict['classes_order'] = np.full(shape = self.exp_dim + (2,), fill_value = np.nan)
+
+        print('Size classifier array: \n', self.exp_dim[0]*self.exp_dim[1]*self.exp_dim[2]*n*2)
+        data_classifier = FMPL_DataClassifier()
+
+        data_classifier.fit()
+
+        data_classifier.predict()
+
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python, numbers=none]
+
+    def calc_metrics(self, std_metrics_dict = {}):
+
+        default_metrics = {
+            'accuracy': accuracy_score,
+            'precision': precision_score,
+            'recall': recall_score,
+            'F1 score': f1_score,
+            'ROC AUC Score': roc_auc_score,
+        }
+
+        metrics_dict = std_metrics_dict or default_metrics
+
+
+        self.data_dict['std_metrics_res'] = np.full(shape = self.exp_dim + (len(metrics_dict),), fill_value = np.nan)
+        
+        metrics = FMPL_Metrics(metrics_dict)
+
+        metrics.confusion_metrics()
+
+        std_metrics_res = self.data_dict['std_metrics_res'].reshape(-1, len(metrics_dict))
+
+        results_df = pd.DataFrame(std_metrics_res, columns= [name for (name, metr_func) in metrics.std_metric_list])
+
+        reference_list = [self.data_dict['assignment_dict'][(i, j, k)] 
+                          for i in range(self.exp_dim[0]) 
+                          for j in range(self.exp_dim[1]) 
+                          for k in range(self.exp_dim[2])]
+
+        reference_list = [extract_table_info(alist[0])+[alist[1][0], alist[2][0]] for alist in reference_list]
+
+        reference_df = pd.DataFrame(reference_list, columns= ['n_features', 
+                                                              'n_samples', 
+                                                              'class_ratio', 
+                                                              'distributions', 
+                                                              'balancer', 
+                                                              'classifier'])
+
+        results_df = pd.concat([reference_df, results_df], axis = 1)
+
+        return results_df
+\end{lstlisting}
 
 
 %\subsection{Pipeline description}

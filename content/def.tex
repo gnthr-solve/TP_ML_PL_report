@@ -1,0 +1,96 @@
+
+
+\definecolor{myblue}{cmyk}{1,.72,0,.38}
+
+% Define custom colors
+%\definecolor{myblue}{rgb}{0,0,1}
+\definecolor{myyellow}{rgb}{1,1,0}
+\definecolor{myorange}{rgb}{1,0.5,0}
+\definecolor{mypurple}{rgb}{0.5,0,0.5}
+\definecolor{mygreen}{rgb}{0,0.5,0}
+
+%Python code style settings---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+% Define a custom style for Python code
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{white},       % background color
+    commentstyle=\color{mygreen},        % comment color
+    keywordstyle=\color{mypurple},         % keyword color
+    numberstyle=\tiny\color{gray},     % line numbers color
+    stringstyle=\color{orange},       % string color 
+    identifierstyle =\color{myblue},
+    basicstyle=\ttfamily\scriptsize,          % code font and size
+    breakatwhitespace=false,             % break lines only at whitespace
+    breaklines=true,                     % enable line breaking
+    captionpos=b,                        % caption position (bottom)
+    keepspaces=true,                     % keep spaces in code
+    numbers=left,                        % line numbers position (left)
+    numbersep=5pt,                       % distance between line numbers and code
+    %numbers=none,                        % line numbers position (left)
+    showspaces=false,                    % show spaces using underscores
+    showstringspaces=false,              % show spaces in strings as underscores
+    showtabs=false,                      % show tabs using underscores
+    tabsize=4                            % tab size
+}
+
+% Set custom colors for specific keywords and function names
+\lstset{
+    language=Python,
+    style=mystyle,
+    %morekeywords={class, def},   % Add keywords to highlight
+    %keywordstyle=\color{myblue}, % Keyword color
+    %morekeywords={for, in},
+    %keywordstyle=\color{mypurple}, % Keywords "for" and "in" will be purple       
+    emph={max, min, sum},                  % Define function name(s) to highlight
+    emphstyle=\color{yellow},          % Function name color
+    %emph={for, in},                  % Define function name(s) to highlight
+    %emphstyle=\color{mypurple},          % Function name color
+}
+
+
+
+%Own Operators----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\DeclareMathOperator*{\curl}{curl}
+
+\let\div\relax %remove the existing div command to allow operator definition
+\DeclareMathOperator*{\div}{div}
+
+\DeclareMathOperator*{\grad}{grad}
+
+
+
+% Redefining single $...$ inline math------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\let\originalmathdollar=$
+\catcode`\$=\active
+\def$#1${\originalmathdollar\color{myblue}#1\originalmathdollar}
+
+% Redefining the display math environment ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+% Save the original definition of the display math environment
+\let\originaldisplaymath=\[
+\let\endoriginaldisplaymath=\]
+
+% Redefine the display math environment to include color
+\renewcommand{\[}{\begin{originaldisplaymath}\color{myblue}}
+\renewcommand{\]}{\end{originaldisplaymath}}
+
+
+
+% Redefining the equation environment ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+% Save the original definition of the equation environment
+\let\originalequation=\equation
+\let\endoriginalequation=\endequation
+
+% Redefine the equation environment to include color
+\renewenvironment{equation}{\begin{originalequation}\color{myblue}}{\end{originalequation}}
+
+
+
+
+
+
+
+
+
