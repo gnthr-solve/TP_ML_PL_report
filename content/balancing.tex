@@ -1,14 +1,76 @@
 \subsection{Data balancing}
-As for the data balancing step, here are some important characteristics that our method should focus on:
+As for the data balancing step, here are some important characteristics that determine the usefulness of a balancer:
 \begin{enumerate}[label=$\bullet$]
-\item The balancing should be generalizable and applicable to different levels of imbalancement and subsequent classification algorithms;
-\item It should mantain the actual class structure and represent accurately the minority class pattern;
+\item The balancer should be generalisable and applicable to different levels of imbalance and subsequent classification methods;
+\item It should maintain the actual class structure and represent the minority class pattern accurately;
 \item It should support a correct class identification.
 \end{enumerate}
    
-We hereby summarize the main features of the data-level balancing algorithms that we implemented in the pipeline. Typically, these methods are categorized into three main groups: synthetic samplers, resamplers and hybrid samplers.
+We hereby summarize the main features of the data-level balancing algorithms that we implemented in the pipeline. Typically, these methods are categorised into three main groups: synthetic samplers, resamplers and hybrid samplers.
 
+\subsubsection{SMOTE}
 \textbf{SMOTE} (Synthetic Minority Oversampling Technique) is probably the most known of the balancing methods. 
-SMOTE is an over-sampling technique which generates synthetic minority class samples by considering feature vectors. For each minority class sample, it calculates the differences between the sample and its $k$ nearest neighbors, with $k$ being selected depending on the needed amount of oversampled instances. A random scaling factor between 0 and 1 is applied to these differences, and the results are added to the original sample's feature vector. This process creates new data points along line segments between features, effectively making the decision boundary of the minority class more inclusive. We decided to include SMOTE in our study as it is a reference method, even though important drawbacks have been detected in previous articles, such as presenting computational complexity quadratic in the size of the minority class and distortion of its distribution due to localization of the selected target points.
+SMOTE is an over-sampling technique which generates synthetic minority class samples by considering feature vectors.
+Given the parameter $k$, at every iteration the algorithm does the following steps:
+
+\begin{comment}
+\NoCaptionOfAlgo
+\begin{algorithm}[H]
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKwComment{Comment}{$\triangleright$\ }{}
+\SetAlCapSkip{1em}
+\SetAlCapNameFnt{\normalfont\normalsize}
+%\TitleOfAlgo{Timestep $\textcolor{darkgray}{t \to t + \delta t}$}
+\caption{Timestep $\textcolor{darkgray}{t \to t + \delta t}$}
+
+Select a random sample of the minority class\;
+Find the $k$ nearest neighbours of that sample that belong to the minority class
+Randomly select a neighbour and calculate the difference between the sample and the neighbour
+Sample a random number $u$ and add $u d$ to obtain a synthetic minority sample
+\For{c in \texttt{cells}}{
+    $
+    \textcolor{darkgray}{r_c} :=
+    \begin{cases*}
+        \color{teal}{r_S} &\text{if c is sensitive} \\
+        \color{purple}{r_R} &\text{if c is resistent}\\
+    \end{cases*}$\;
+    Total propensity $\textcolor{darkgray}{p := (r_c + d_T) \delta t}$\;
+    \uIf{$\textcolor{Purple}{u < p}$}{ \tcp{cell active}
+        \uIf{$\textcolor{Purple}{u < \frac{r_c \delta t}{p}}$}{
+            \texttt{AttemptProliferation}\;
+        }
+        \Else{
+            \texttt{Death}\;
+        }
+    } 
+    \Else{  \tcp{cell inactive}
+        \texttt{continue}\;
+    }
+}
+\end{algorithm}
+\end{comment}
+For each minority class sample, it calculates the distances between the sample and its $k$ nearest neighbors,
+with $k$ being selected depending on the needed amount of oversampled instances. 
+A random scaling factor between 0 and 1 is applied to these differences, and the results are added to the original sample's feature vector. 
+This process creates new data points along line segments between features, effectively making the decision boundary of the minority class more inclusive. 
+We decided to include SMOTE in our study as it is a reference method, even though important drawbacks have been detected in previous articles, 
+such as presenting computational complexity quadratic in the size of the minority class and distortion of its distribution due to localization of the selected target points.
+
+\begin{comment}
+	\begin{figure}[H]
+	\label{fig:tube}
+	\centering
+	\includegraphics[height=4.0cm]{tube.jpg}
+	\caption{Conservation in thin long tube (3D), with variables varying only in one dimension (from C.P. Fall, 2005)}
+	\end{figure}
+\end{comment}
+
+
+\subsubsection{Borderline SMOTE}
+
+
+%\subsubsection{K-means SMOTE}
+
 
 \textbf{ADASYN} is another synthetic sampler 

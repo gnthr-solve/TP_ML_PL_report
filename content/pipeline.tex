@@ -1,0 +1,64 @@
+\section{Machine Learning Pipeline}
+
+This project was focused on two aspects.
+The first was creating a machine learning pipeline that could facilitate an easy way to conduct experiments on imbalanced data.
+The second was to use it to conduct some experiments to show it functions and to gain some additional insight into the imbalance problem itself.
+
+Along the way we created three approaches to the pipeline, 
+where the idea with each successive approach was to either improve generality and the potential scope of experiments that could be run,
+or improve the efficiency of the pipeline computation- or memory-wise to obtain results quicker.
+The fundamental layout of all three approaches was the same in the sense that each consisted of four or five python classes:
+\begin{enumerate}[label=\arabic*)]
+\item A \textbf{generator} class that creates the input data for a variety of parameters like the number, dimensionality and imbalance ratio of the samples
+\item A \textbf{balancer} class that subjects the created data to a chosen balancing method to remedy the class imbalance
+\item A \textbf{classifier} class that trains a chosen classifier on the output of the balancer class and conducts predictions on the test-set
+\item An \textbf{metrics} or \textbf{assessor} class that applies standard metrics of classification quality to the predictions or guides the flow of the pipeline
+\end{enumerate}
+
+The first version of the pipeline is essentially a more elegant packaging for the application of methods from \texttt{scikit-learn}, \texttt{imblearn}, 
+and some more specialised libraries like \texttt{xgboost}. 
+In this version both the balancer and classifier classes are essentially just wrappers that invoke the balancing, 
+training and prediction methods of the imported classes from these libraries.
+Experiments are conducted directly via for-loop iteration over the experiment parameters.
+
+The second approach was based on two ideas. One is to incorporate a new generator that allows more flexible generation of feature data.
+The \texttt{make\_classification} method used in the first approach creates clusters exclusively with Gaussian features and does not allow to specify means or variances.
+We created an own generator to amplify the control over and the variety of our sample distributions.
+The other idea was to expand the functionality of the balancer and classifier classes by locating parts of the necessary iterations in a larger experiment in these classes.
+The hope was to allow brief experiments to be conducted in a more modularised way and improve efficiency.
+Since the goal of better efficiency was not achieved in this case we created a third approach.
+
+Our third approach was mainly focused on computational efficiency. 
+Stacked for-loop iterations turned out to be fairly slow and required a large amount of time to complete.
+This is to some extend inevitable as the involved algorithms are complex and the datasets large, 
+but the previous pipelines also created large additional overhead this approach was intended to reduce.
+
+In the following we give a more detailed description of the created pipeline versions.
+
+\subsection{First pipeline approach}
+
+%.....
+
+
+\subsection{Generator Generalisation and Localised Iteration Approach}
+
+
+\subsection{Fast Pipeline Approach}
+
+Conducting an experiment with the two previous versions of the pipeline involves concatenated for-loop iterations over the respective parameter sets.
+At each step of an iteration the data is passed between the active class instances of the pipeline and subsequently stored as an instance attribute before transformation.
+There are two main sources of overhead that these approaches incur due to these operations.
+For one, every iteration involves the creation and subsequent destruction of large arrays in memory, 
+and while \texttt{numpy}'s C implementation guarantees efficient calculations on arrays of fixed size, 
+creation of these arrays incurs significant overhead as large contiguous blocks of memory have to be reserved and released.
+Secondly, at each step of an iteration the data is passed, i.e. copied, 
+between the individual pipeline components, which again incurs the overhead due to creation and garbage collection.
+
+The key idea of the last pipeline approach is to reduce the impact of these sources of overhead by creating large numpy arrays of adequate dimensions once,
+giving each component of the pipeline a reference to the data instead of a copy, and applying the algorithms directly to sections of these large arrays.
+
+
+
+%\subsection{Pipeline description}
+
+
