@@ -56,7 +56,7 @@ creation of these arrays incurs significant overhead as large contiguous blocks 
 Secondly, at each step of an iteration the data is passed, i.e. copied, 
 between the individual pipeline components, which again incurs the overhead due to creation and garbage collection.
 
-The key idea of the last pipeline approach is to reduce the impact of these sources of overhead by creating large numpy arrays of adequate dimensions once,
+The key idea of the last pipeline approach is to reduce the impact of these sources of overhead by creating large \texttt{numpy} arrays of adequate dimensions once,
 giving each component of the pipeline a reference to the data instead of a copy, and applying the algorithms directly to sections of these large arrays.
 
 To this end we introduce an intermediate parent class which only has an empty dictionary as a class attribute:
@@ -137,7 +137,7 @@ which now doesn't return the split raw data but instead inscribes it in the data
 
 The next method in line is the \texttt{balance} method. It is called with \texttt{bal\_params\_dicts} as a parameter that defaults to an empty dictionary.
 This parameter is supposed to be a dictionary of dictionaries where each key should be a balancers name and the corresponding value should be a dictionary 
-that contains the instantiation parameters of the balancer, most importantly the \texttt{'sampling_strategy'}.
+that contains the instantiation parameters of the balancer, most importantly the \texttt{'sampling\_strategy'}.
 
 \begin{lstlisting}[language=Python, numbers=none]
     def balance(self, bal_params_dicts = {}):
@@ -172,12 +172,72 @@ that contains the instantiation parameters of the balancer, most importantly the
 \end{lstlisting}
 
 The most complicated part of this step was to find the maximal number of samples for which to reserve space in the balanced data arrays.
-\texttt{Imblearn} balancers allow a wide range of options to set the \texttt{'sampling_strategy'} and depending on which strategy the user settles on,
+\texttt{Imblearn} balancers allow a wide range of options to set the \texttt{'sampling\_strategy'} and depending on which strategy the user settles on,
 the final amount of samples varies drastically. This approach to the pipeline in general sacrifices memory consumption for faster execution time, 
 but optimally the created arrays should not be much larger than they have to be to accommodate the data. 
-To achieve an array that is as small as possible but as large as necessary the \texttt{calculate_no_samples} function calculates the number of samples
+To achieve an array that is as small as possible but as large as necessary the \texttt{calculate\_no\_samples} function calculates the number of samples
 that can be expected depending on the sampling strategy and uses the maximum number among all balancers and datasets to be balanced.
 
+The instantiation of the balancers and the iteration is happening completely in the realm of the \texttt{FMPL\_DataBalancer} class. 
+This is unlike the generation step where the iteration is in the \texttt{generate} method where a new class instance of the generator was created at each iteration.
+Adding a serialised iteration functionality to the generator would have been considerably more effort to implement as the class already has a high degree of complexity,
+hence we decided to go for the simpler approach there. For \texttt{FMPL\_DataBalancer} however it was possible to do the iterations in an elegant way.
+
+Upon initialisation the class creates a sub-dictionary of the \texttt{assignment\_dict}, dropping the index for the classifier in the keys,
+and the generator dictionaries and classifier pairs, keeping only name and class of the balancers.
+The class also stores a dictionary for the parameters of the balancers which is composed of those parameter dictionaries the user specified in the function call
+and a default dictionary with \texttt{'sampling\_strategy' : 'auto'} for those balancers without specification.
+
+\begin{lstlisting}[language=Python, numbers=none]
+class FMPL_DataBalancer(Data):
+
+    def __init__(self, bal_params_dict = {}):
+
+        self.balancer_dict = {(i,j): assign_list[1] for (i,j,k), assign_list in self.data_dict['assignment_dict'].items()}
+        
+        default_dict = {'sampling_strategy': 'auto', 'random_state': 42}
+        self.bal_params_dict = {name: bal_params_dict[name]
+                                if name in bal_params_dict else default_dict
+                                for (name, bal) in self.balancer_dict.values()}
+        
+     
+    def balance_data(self):
+
+        X = self.data_dict['org_X_train']
+        y = self.data_dict['org_y_train']
+
+        for (data_ind, bal_ind), (name, balancer) in self.balancer_dict.items():
+
+            X_bal = X[data_ind]
+            y_bal = y[data_ind]
+            
+            # Drop rows with NaN values
+            X_bal = X_bal[~np.isnan(X_bal).all(axis = 1)]
+            # Drop columns with NaN values
+            X_bal = X_bal[: , ~np.isnan(X_bal).all(axis = 0)]
+            y_bal = y_bal[~np.isnan(y_bal)]
+            
+            if balancer == None:
+                resample = (X_bal,y_bal)
+
+            else:
+                balancer = balancer(**self.bal_params_dict[name])
+                resample = balancer.fit_resample(X_bal, y_bal)
+
+            n, d = np.shape(resample[0])
+                        
+            self.data_dict['bal_X_train'][data_ind, bal_ind, :n, :d] = resample[0]
+            self.data_dict['bal_y_train'][data_ind, bal_ind, :n] = resample[1]
+            
+\end{lstlisting}
+
+The \texttt{balance\_data} method retrieves the raw training data from the dedicated arrays and iterates over the reduced tuple indices from the \texttt{balancer\_dict}.
+For each combination of balancer and dataset the not-NaN part of the corresponding sub-array of the raw data is selected and new samples are created. 
+The resulting samples are placed in their respective positions in the balancer data array created by the \texttt{Assessor}.
+
+The classification and prediction steps follow the same general dynamic, although made somewhat simpler as the appropriate array size is already known.
+One array is created for the predictions on the test set, another for predicted probabilities on the test set and a final one that stores the class order.
+ 
 \begin{lstlisting}[language=Python, numbers=none]
     def clsf_pred(self):
 
@@ -187,7 +247,6 @@ that can be expected depending on the sampling strategy and uses the maximum num
         self.data_dict['clsf_predictions_proba'] = np.full(shape = self.exp_dim + (n, 2), fill_value = np.nan)
         self.data_dict['classes_order'] = np.full(shape = self.exp_dim + (2,), fill_value = np.nan)
 
-        print('Size classifier array: \n', self.exp_dim[0]*self.exp_dim[1]*self.exp_dim[2]*n*2)
         data_classifier = FMPL_DataClassifier()
 
         data_classifier.fit()
@@ -196,9 +255,84 @@ that can be expected depending on the sampling strategy and uses the maximum num
 
 \end{lstlisting}
 
+Storing the order is necessary as for a \texttt{scikit-learn} classifier the predicted probabilities are ordered by the sequence in which the classes appeared in the training set,
+which we cannot anticipate due to the randomness in generation. 
+The initialisation method of \texttt{FMPL\_DataClassifier} follows the same procedure as we already detailed for the \texttt{FMPL\_DataBalancer}.
+Also the remaining two methods follow similar steps. 
+In both the \texttt{fit} and the \texttt{predict} method the iteration proceeds over a transformed version of the \texttt{assignment\_dict} 
+where only the classifier entries were selected and their classes instantiated.
+
+\begin{lstlisting}[language=Python, numbers=none]
+class FMPL_DataClassifier(Data):
+
+    def __init__(self, clsf_params_dict = {}):
+
+        default_dict = {'random_state': 42}
+        classifier_dict = {key: assign_list[2] for key, assign_list in self.data_dict['assignment_dict'].items()}
+        
+        classifier_dict = {key: (name, clsf(**clsf_params_dict[name]))
+                           if name in clsf_params_dict else (name, clsf(**default_dict))
+                           for key, (name, clsf) in classifier_dict.items()}
+        
+        self.classifier_dict = classifier_dict
+
+
+    def fit(self):
+
+        X = self.data_dict['bal_X_train']
+        y = self.data_dict['bal_y_train']
+        
+        for (i,j,k), (name, clsf) in self.classifier_dict.items():
+            
+            X_fit = X[i, j, :, :]
+            y_fit = y[i, j, :]
+
+            # Drop rows with NaN values
+            X_fit = X_fit[~np.isnan(X_fit).all(axis = 1)]
+            # Drop columns with NaN values
+            X_fit = X_fit[: , ~np.isnan(X_fit).all(axis = 0)]
+            
+            y_fit = y_fit[~np.isnan(y_fit)]
+            
+            self.classifier_dict[(i,j,k)] = (name, clsf.fit(X_fit, y_fit))
+
+        return self
+    
+
+    def predict(self):
+
+        X = self.data_dict['org_X_test']
+
+        for (i,j,k), (name, clsf) in self.classifier_dict.items():
+            
+            X_test = X[i, :, :]
+
+            # Drop rows with NaN values
+            X_test = X_test[~np.isnan(X_test).all(axis = 1)]
+            # Drop columns with NaN values
+            X_test = X_test[: , ~np.isnan(X_test).all(axis = 0)]
+
+            n_i = len(X_test)
+
+            self.data_dict['clsf_predictions_y'][i, j, k, : n_i] = clsf.predict(X_test)
+            self.data_dict['clsf_predictions_proba'][i, j, k, : n_i, :] = clsf.predict_proba(X_test) 
+            self.data_dict['classes_order'][i, j, k, :] = clsf.classes_
+
+\end{lstlisting}
+
+Every dataset-balancer-classifier combination in this tensor is then first \texttt{fit} with the balanced data, corresponding to the position in the tensor, 
+and then called on to give predictions in \texttt{predict}. Each time we select a view of the whole data we drop the NaN components from the view before passing it.
+
+The next step to achieve a similar functionality as the previous pipeline versions was to calculate the standard metrics. 
+Once one has understood the design of the previous functions in \texttt{Assessor} this one is straightforward to understand due to the similarity.
+The user passes a dictionary of named standard metric-functions. 
+'Standard' here essentially refers both to the commonality of the metrics as well as the technical aspect of their calculation:
+Only the original test sets and the trained classifiers predictions on them are necessary.
+Should the user not pass a dictionary with the desired standard metrics a default will be used. We applied this default to the majority of our tests.
+
 \begin{lstlisting}[language=Python, numbers=none]
 
-    def calc_metrics(self, std_metrics_dict = {}):
+    def calc_std_metrics(self, std_metrics_dict = {}):
 
         default_metrics = {
             'accuracy': accuracy_score,
@@ -239,6 +373,36 @@ that can be expected depending on the sampling strategy and uses the maximum num
 
         return results_df
 \end{lstlisting}
+
+What is different in this part of the pipeline is that the names and the crude information from the generator dictionaries contained in the \texttt{assignment\_dict}
+is transformed into a reference list that we use to create the \texttt{results\_df}.
+The \texttt{FMPL\_Metrics} classes \texttt{confusion\_metrics} function is so similar in structure to the functions previously described 
+that we will just show the code without additional explanation:
+
+\begin{lstlisting}[language=Python, numbers=none]
+def confusion_metrics(self):
+	
+        y_test = self.data_dict['org_y_test']
+        y_pred = self.data_dict['clsf_predictions_y']
+
+        for (i,j,k) in self.data_dict['assignment_dict']:
+            
+            y_i_test = y_test[i]
+            y_i_test = y_i_test[~np.isnan(y_i_test)]
+
+            y_clsf_pred = y_pred[i, j, k]
+            y_clsf_pred = y_clsf_pred[~np.isnan(y_clsf_pred)]
+
+            evaluation = np.array([metr_func(y_i_test, y_clsf_pred) for (name, metr_func) in self.std_metric_list])
+
+            self.data_dict['std_metrics_res'][i, j, k, :] = evaluation
+\end{lstlisting}
+
+
+\subsection{Diskussion}
+
+
+
 
 
 %\subsection{Pipeline description}
