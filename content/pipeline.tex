@@ -37,15 +37,182 @@ In the following we give a more detailed description of the created pipeline ver
 
 \subsection{First pipeline approach}
 
-%.....
+%Your description here.....
 
 
 \subsection{Generator Generalisation and Localised Iteration Approach}
 
-%......
+The Central Limit Theorem and generalisations like Donsker's Theorem provide the theoretical explanation for the reality most practitioners
+of data analysis are already well aware of: The normal distribution is omnipresent and occurs even in many circumstances one wouldn't expect due to accumulation effects.
+The already mentioned \texttt{make\_classification} method recognises this fact and allows to create data from normal distributions of arbitrary dimensions in a simplified way.
+
+There are however also data characteristics that can not be modelled by a normal distribution due to aspects like domain structure or symmetry.
+\texttt{make\_classification} also doesn't provide direct control over explanatory distribution parameters like expectation and covariance matrix.
+We thus created an own generator as well, that was supposed to facilitate greater control over composition and characteristics of feature distributions.
+The \texttt{Multi\_Modal\_Dist\_Generator} was designed, as the name suggests, to create samples with feature-distributions that have multiple modes.
+It is designed in such a way that it can sample from any distribution the \texttt{scipy} package provides.
+
+In the example below feature vectors with normal and beta distributed features was created and plotted with the \texttt{RawVisualiser} class.
+Here the involved normal distribution is bimodal for the majority and unimodal for the minority class. 
+The first plot shows two normal features 0 and 1 plotted against each other in a scatterplot. 
+
+\begin{figure}[H]
+	\centering
+  	\includegraphics[width=\linewidth]{assets/data_vis/Normal_Dist_Bimodal.png}
+  	\captionof{figure}{Majority bimodal, minority unimodal-normal features}
+  	\label{fig:Bimodal Normal}
+\end{figure}
+
+One can see that different covariance matrices have been used 
+and that a greater variety of distribution shapes and circumstances can be represented with this level of control.
+
+The second figure comes from the same dataset, but plots feature 0 (normal) and feature 2 (beta) against each other.
+
+\begin{figure}[H]
+  	\centering
+  	\includegraphics[width=\linewidth]{assets/data_vis/Normal_Beta.png}
+  	\captionof{figure}{Bimodal-normal (0) and beta (2) features}
+  	\label{fig:Normal plus Beta}
+\end{figure}
+
+%-----------------------------------------------------
+\begin{comment}
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{.5\textwidth}
+  		\centering
+  		\includegraphics[width=0.98\linewidth]{assets/data_vis/Normal_Dist_Bimodal.png}
+  		\captionof{figure}{Majority bimodal, minority unimodal-normal features}
+  		\label{fig:Bimodal Normal}
+	\end{minipage}%
+	\begin{minipage}{.5\textwidth}
+  		\centering
+  		\includegraphics[width=0.98\linewidth]{assets/data_vis/Normal_Beta.png}
+  		\captionof{figure}{Bimodal-normal (0) and beta (2) features}
+  		\label{fig:Normal plus Beta}
+	\end{minipage}
+\end{figure}
+\end{comment}
+%-----------------------------------------------------
+
+It is apparent that this generator allows for significantly greater flexibility but at the cost of having to specify all the parameters of every involved distribution.
+This functionality made it tough to implement and somewhat tedious to use, as a test that would otherwise only require specifying a number of features or a cluster distance,
+requires the user to come up with the necessary means, variances, scales or other parameters.
+On the implementation side this also required to find a way to pass the parameters from a variety of distributions, keep track which parameters belonged to which feature
+and re-assemble the complete feature vector before doing the train-test-split.
+
+\begin{lstlisting}[language=Python, numbers=none]
+class Multi_Modal_Dist_Generator:
+    
+    def __init__(self, distributions, params_dict_list, sizes, random_state = 1234):
+        self.sizes = sizes
+        self.dists = distributions
+        self.params_dict_list = params_dict_list
+        self.random_state = random_state
 
 
-\subsection{Fast Pipeline Approach}
+    def create_data(self):
+        
+        self.dists_sample_lists = {'c0': [], 'c1': []}
+        
+        for l, parameters_dict in enumerate(self.params_dict_list):
+
+            for i in range(2):
+
+                if (modes:=parameters_dict[f'modes_c{i}']) > 1:
+                    
+                    self.create_multimodal_features(c_id = i, 
+                                                    dist = self.dists[l], 
+                                                    params_dict = parameters_dict[f'params_c{i}'], 
+                                                    modes = modes, 
+                                                    mixing_weights = parameters_dict[f'mixing_weights_c{i}'])
+
+                else:
+                    self.create_unimodal_features(c_id = i, 
+                                                  dist = self.dists[l], 
+                                                  params_dict = parameters_dict[f'params_c{i}'] )
+        
+        self.dists_sample_lists = {key: [array for array in sample_features_list]
+                                   for key, sample_features_list in self.dists_sample_lists.items()}
+        
+        X_c0 = np.concatenate(self.dists_sample_lists['c0'], axis = 1)
+        X_c1 = np.concatenate(self.dists_sample_lists['c1'], axis = 1)
+
+        y_c0 = np.zeros(self.sizes[0])
+        y_c1 = np.ones(self.sizes[1])
+
+        self.X = np.concatenate( (X_c0, X_c1), axis = 0)
+        self.y = np.concatenate( (y_c0, y_c1), axis = 0)
+
+        # Generate a random permutation of indices
+        permuted_indices = np.random.permutation(len(self.X))
+
+        self.X = self.X[permuted_indices]
+        self.y = self.y[permuted_indices]
+                
+
+    def create_multimodal_features(self, c_id, dist, params_dict, modes, mixing_weights):
+
+        size = self.sizes[c_id]
+
+        k = modes
+
+        multinomial = st.multinomial(size, mixing_weights)
+        comp_sizes = multinomial.rvs(size = 1)[0]
+
+        acc_list = []
+
+        for i in range(k):
+
+            params = {key: value[i] for key, value in params_dict.items()}
+
+            frozen_dist = dist(**params)
+
+            acc_list.append(frozen_dist.rvs(size = comp_sizes[i]))
+
+        feature_samples = np.concatenate( acc_list, axis = 0)
+
+        feature_samples = feature_samples.reshape(size, -1)
+
+        self.dists_sample_lists[f'c{c_id}'].append(feature_samples)
+        
+
+    def create_unimodal_features(self, c_id, dist, params_dict):
+
+        size = self.sizes[c_id]
+
+        k = len(next(iter(params_dict.values())))
+
+        sample_features_list = []
+
+        for i in range(k):
+
+            params = {key: value[i] for key, value in params_dict.items()}
+
+            frozen_dist = dist(**params)
+
+            sample_features_list.append(frozen_dist.rvs(size = size))
+
+        sample_features_list = [sample.reshape(size, -1) for sample in sample_features_list]
+
+        self.dists_sample_lists[f'c{c_id}'].extend(sample_features_list)
+
+    
+    def prepare_data(self, test_size = 0.2):
+        
+        self.create_data()
+
+        return train_test_split(
+            self.X, 
+            self.y, 
+            test_size = test_size,
+            stratify = self.y,
+            random_state=self.random_state
+            )
+\end{lstlisting}
+
+
+\subsection{Fast Pipeline Approach (FMLP)}
 
 Conducting an experiment with the two previous versions of the pipeline involves concatenated for-loop iterations over the respective parameter sets.
 At each step of an iteration the data is passed between the active class instances of the pipeline and subsequently stored as an instance attribute before transformation.
@@ -106,7 +273,7 @@ After initialisation the following methods are to be called in sequence if one w
 In the generation function below we first check for the largest number of samples and dimensions to accommodate, 
 then four \texttt{numpy} arrays of that size are created and filled with\texttt{np.nan} values.
 Subsequently we iterate over the generation dictionaries in the stored list and assign a generation index to place the generated data in the correct part of the raw data arrays.
-For each generation dictionary the \texttt{FMPL\_Generator} class is instantiated and its \texttt{prepare\_data} method is executed.
+For each generation dictionary the \texttt{FMLP\_Generator} class is instantiated and its \texttt{prepare\_data} method is executed.
 \begin{lstlisting}[language=Python, numbers=none]
 def generate(self):     
 
@@ -128,11 +295,11 @@ def generate(self):
 	
 	for i, generation_dict in enumerate(self.generation_dict_list):
 		generation_dict['gen_index'] = i
-		generator = FMPL_Generator(**generation_dict)
+		generator = FMLP_Generator(**generation_dict)
 		generator.prepare_data(self.test_size)
 \end{lstlisting}
 
-The \texttt{FMPL\_Generator} doesn't differ much from the generator in the previous section apart from inheriting from \texttt{Data} and the \texttt{prepare\_data} method,
+The \texttt{FMLP\_Generator} doesn't differ much from the generator in the previous section apart from inheriting from \texttt{Data} and the \texttt{prepare\_data} method,
 which now doesn't return the split raw data but instead inscribes it in the data arrays instantiated earlier.
 
 The next method in line is the \texttt{balance} method. It is called with \texttt{bal\_params\_dicts} as a parameter that defaults to an empty dictionary.
@@ -166,7 +333,7 @@ that contains the instantiation parameters of the balancer, most importantly the
         self.data_dict['bal_X_train'] = np.full(shape = (a, b, k, self.d), fill_value = np.nan)
         self.data_dict['bal_y_train'] = np.full(shape = (a, b, k, ), fill_value = np.nan)
 
-        data_balancer = FMPL_DataBalancer(bal_params_dicts)
+        data_balancer = FMLP_DataBalancer(bal_params_dicts)
         
         data_balancer.balance_data()
 \end{lstlisting}
@@ -178,10 +345,10 @@ but optimally the created arrays should not be much larger than they have to be 
 To achieve an array that is as small as possible but as large as necessary the \texttt{calculate\_no\_samples} function calculates the number of samples
 that can be expected depending on the sampling strategy and uses the maximum number among all balancers and datasets to be balanced.
 
-The instantiation of the balancers and the iteration is happening completely in the realm of the \texttt{FMPL\_DataBalancer} class. 
+The instantiation of the balancers and the iteration is happening completely in the realm of the \texttt{FMLP\_DataBalancer} class. 
 This is unlike the generation step where the iteration is in the \texttt{generate} method where a new class instance of the generator was created at each iteration.
 Adding a serialised iteration functionality to the generator would have been considerably more effort to implement as the class already has a high degree of complexity,
-hence we decided to go for the simpler approach there. For \texttt{FMPL\_DataBalancer} however it was possible to do the iterations in an elegant way.
+hence we decided to go for the simpler approach there. For \texttt{FMLP\_DataBalancer} however it was possible to do the iterations in an elegant way.
 
 Upon initialisation the class creates a sub-dictionary of the \texttt{assignment\_dict}, dropping the index for the classifier in the keys,
 and the generator dictionaries and classifier pairs, keeping only name and class of the balancers.
@@ -189,7 +356,7 @@ The class also stores a dictionary for the parameters of the balancers which is 
 and a default dictionary with \texttt{'sampling\_strategy' : 'auto'} for those balancers without specification.
 
 \begin{lstlisting}[language=Python, numbers=none]
-class FMPL_DataBalancer(Data):
+class FMLP_DataBalancer(Data):
 
     def __init__(self, bal_params_dict = {}):
 
@@ -247,7 +414,7 @@ One array is created for the predictions on the test set, another for predicted 
         self.data_dict['clsf_predictions_proba'] = np.full(shape = self.exp_dim + (n, 2), fill_value = np.nan)
         self.data_dict['classes_order'] = np.full(shape = self.exp_dim + (2,), fill_value = np.nan)
 
-        data_classifier = FMPL_DataClassifier()
+        data_classifier = FMLP_DataClassifier()
 
         data_classifier.fit()
 
@@ -257,13 +424,13 @@ One array is created for the predictions on the test set, another for predicted 
 
 Storing the order is necessary as for a \texttt{scikit-learn} classifier the predicted probabilities are ordered by the sequence in which the classes appeared in the training set,
 which we cannot anticipate due to the randomness in generation. 
-The initialisation method of \texttt{FMPL\_DataClassifier} follows the same procedure as we already detailed for the \texttt{FMPL\_DataBalancer}.
+The initialisation method of \texttt{FMLP\_DataClassifier} follows the same procedure as we already detailed for the \texttt{FMLP\_DataBalancer}.
 Also the remaining two methods follow similar steps. 
 In both the \texttt{fit} and the \texttt{predict} method the iteration proceeds over a transformed version of the \texttt{assignment\_dict} 
 where only the classifier entries were selected and their classes instantiated.
 
 \begin{lstlisting}[language=Python, numbers=none]
-class FMPL_DataClassifier(Data):
+class FMLP_DataClassifier(Data):
 
     def __init__(self, clsf_params_dict = {}):
 
@@ -347,7 +514,7 @@ Should the user not pass a dictionary with the desired standard metrics a defaul
 
         self.data_dict['std_metrics_res'] = np.full(shape = self.exp_dim + (len(metrics_dict),), fill_value = np.nan)
         
-        metrics = FMPL_Metrics(metrics_dict)
+        metrics = FMLP_Metrics(metrics_dict)
 
         metrics.confusion_metrics()
 
@@ -376,7 +543,7 @@ Should the user not pass a dictionary with the desired standard metrics a defaul
 
 What is different in this part of the pipeline is that the names and the crude information from the generator dictionaries contained in the \texttt{assignment\_dict}
 is transformed into a reference list that we use to create the \texttt{results\_df}.
-The \texttt{FMPL\_Metrics} classes \texttt{confusion\_metrics} function is so similar in structure to the functions previously described 
+The \texttt{FMLP\_Metrics} classes \texttt{confusion\_metrics} function is so similar in structure to the functions previously described 
 that we will just show the code without additional explanation:
 
 \begin{lstlisting}[language=Python, numbers=none]
@@ -399,7 +566,22 @@ def confusion_metrics(self):
 \end{lstlisting}
 
 
-\subsection{Diskussion}
+\subsection{Discussion}
+
+The greatest challenge overall in the creation of these pipelines was the administration of parameters. 
+Allowing all segments of the pipeline to be general enough to accept the large variety of parameters that generator, balancers and classifiers possess,
+while maintaining usability and a streamlined workflow, was very difficult.
+We wanted the pipeline to be as general as possible to enable a large body of experiments to be conductable but assure that a user does not have to provide
+all the parameters in a short experiment.
+
+As mentioned before the FMLP approach will on average be faster but as it stores large arrays in memory that remain throughout the execution of the pipeline,
+it places a much heavier burden on available RAM memory. 
+While we did not have the time to implement this here, the computational efficiency of this approach could be greatly increased still 
+with the use of parallel processing and GPU recruitment. 
+Furthermore one could create custom versions of the \texttt{imblearn} balancing algorithms and \texttt{scikit-learn} classifiers that sacrifice some generality
+in favour of efficient serialisation that makes greater use of the optimised matrix operations of modern GPUs.
+The FMLP approach allows to test various balancers and classifiers with the freedom to set all parameters for each of them.
+It does not however enable serialised experiments where different parameter sets are passed to the same balancer or classifier without additional exterior iteration.
 
 
 
