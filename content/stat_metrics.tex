@@ -1,6 +1,50 @@
 
-\section{Metrics}
-<<<<<<< HEAD
+\subsection{Metrics}
+
+This section gives a brief overview of the metrics commonly used to assess the performance of a classifier in a binary classification situation.
+Given the true y-values of a test set and classifiers predictions on the corresponding feature vectors most metrics are based on the so called \textbf{confusion matrix}.
+
+\begin{figure}[H]
+	\centering
+  	\includegraphics[width=\linewidth]{assets/confusion_matrix.png}
+  	\captionof{figure}{Confusion Matrix}
+  	\label{fig:confusion_matrix}
+\end{figure}
+
+It summarises performance with the number of true positves (TP), true negatives (TN), false positives (FP) and false negatives (FN). 
+What is a positive depends on the target class. In our case this is the class $1$ (the minority class) while a negative corresponds to class $0$ (the majority class).
+
+From these values many standard measures are derived:
+
+\textbf{Accuracy:}
+Accuracy is the ratio between all that has been labeled correctly and the total number of samples, i.e.
+\[
+	\text{acc} = \frac{TP + TN}{TP + TN + FP + FN}
+\]
+It is a commonly used but fairly basic measure that often fails to accurately represent a classifiers performance in an imbalanced situation,
+as for a high class imbalance the accuracy is high for a classifier that stubbornly predicts majority class for every sample.
+
+\textbf{Sensitivity / True Positive Rate / Recall:}
+Recall reflects the fraction of positive samples the classifier has identified i.e.
+\[
+	\text{rec} = \frac{TP}{TP + FN}
+\]
+It is more relevant in the imbalanced case as a classifier that chooses to label all before it as majority class to obtain good accuracy will have low recall.
+
+\textbf{Precision:}
+Precision represents the fraction of samples that have been correctly labeled positive i.e.
+\[
+	\text{prec} = \frac{TP}{TP + FP}
+\]
+This measure allows to assess whether the classifier tends to be correct when labelling a sample as minority class.
+
+\textbf{Specificity:}
+Gives the fraction of samples classified as correctly negative versus all negatives.
+\[
+	\text{spec} = \frac{TN}{TN + FP}
+\]
+Specificity is especially important when assessing the frequency and potential cost of false positives.
+
 \subsection{Accuracy rate}
 
 	If benefit and harm are weighted equally, the odds of the threshold is 1:1, or a threshold probability of $50\%$. 
@@ -16,9 +60,9 @@
 	The improvement that is obtained by making decisions based on predictions from the model is the difference between the weighted accuracy
 	obtained with the model versus the weighted accuracy of the default policy.
 	
-=======
 
->>>>>>> baseline
+
+
 \subsection{Receiver Operator Characteristic (ROC)}
 	Consider a binary classification problem where we have a classifier that outputs a continuous score s(X) for an instance X.
 	We then set a threshold $\tau$ to decide the predicted class. If $s(X) > \tau$, we predict the positive class; otherwise, we predict the negative class.
@@ -43,7 +87,7 @@
 	
 	AUC can also be interpreted in terms of the probability that the classifier will rank a randomly chosen positive instance higher than a randomly chosen negative instance,
 	assuming that one positive and one negative instance are chosen at random.
-<<<<<<< HEAD
+
 	The area under the curve (AUC) can be interpreted as the probability that a patient with the outcome is given a higher probability of the outcome by the model
 	than a randomly chosen patient without the outcome
 	Some may consider the interpretation of AUC as straightforward. Others may object that we consider a pair of subjects, one with and one without the outcome, 
@@ -149,10 +193,3 @@
     	\end{align*}
 
 	
-=======
-	
-
-
-
-
->>>>>>> baseline
