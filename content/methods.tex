@@ -1,7 +1,16 @@
 \section{Methods}
 
-This section will describe the different balancing methods and classifiers we used to obtain our results.
+This section will describe the different balancing methods, classifiers and metrics we used to obtain and assess our results.
 For each balancer and classifier we will give a short theoretical description as to how it works, what the strengths and weaknesses of the method are,
-and which challenges we encountered in the implementation. 
+and which challenges we encountered in the implementation.
 
+In the following we will assume that we have data we aggregate with the notation $X = (X_j)_{j=1}^n$ and $y$ 
+where for our binary classification problem $X \in \mathbb{R}^{d\times n}$ is the \textit{feature} or \textit{design matrix} containing all $n$ feature vectors of dimension $d$ 
+and $y \in \{0,1\}^n$ is the \textit{target vector} with binary entries.
+So in our notation $y_j$ is the class label of feature vector $X_j = x_j$, where we set $y_j = 1$ to mean membership to the minority class and $y_j = 0$ 
+to mean membership to the majority class.
 
+By $\mathcal{D} = \{(x_j, y_j) | 1 \leq j \leq n\}$ we denote the entire dataset and by $\mathcal{D}_\text{train}, \mathcal{D}_\text{test}$ 
+we denote the train and test subsets respectively. As in any particular step either the training or the testing subset of the data is used, 
+and to avoid clutter in the notation we will still use $X$ and $y$ when talking about either subset without additional indication in the notation.
+When referring to a subset of samples of class $1$ we write $\{x_j^1, y_j^1 \}$
