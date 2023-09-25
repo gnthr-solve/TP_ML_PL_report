@@ -49,7 +49,7 @@ The already mentioned \texttt{make\_classification} method recognises this fact 
 There are however also data characteristics that can not be modelled by a normal distribution due to aspects like domain structure or symmetry.
 \texttt{make\_classification} also doesn't provide direct control over explanatory distribution parameters like expectation and covariance matrix.
 We thus created an own generator as well, that was supposed to facilitate greater control over composition and characteristics of feature distributions.
-The \texttt{Multi\_Modal\_Dist\_Generator} was designed, as the name suggests, to create samples with feature-distributions that have multiple modes.
+The \texttt{Multi\_Modal\_Dist\_Generator} was designed, as the name suggests, to create samples with feature-distributions that can have multiple modes.
 It is designed in such a way that it can sample from any distribution the \texttt{scipy} package provides.
 
 In the example below feature vectors with normal and beta distributed features was created and plotted with the \texttt{RawVisualiser} class.
@@ -99,7 +99,53 @@ It is apparent that this generator allows for significantly greater flexibility 
 This functionality made it tough to implement and somewhat tedious to use, as a test that would otherwise only require specifying a number of features or a cluster distance,
 requires the user to come up with the necessary means, variances, scales or other parameters.
 On the implementation side this also required to find a way to pass the parameters from a variety of distributions, keep track which parameters belonged to which feature
-and re-assemble the complete feature vector before doing the train-test-split.
+and re-assemble the complete feature vector before doing the train-test-split. 
+
+The parameters used to generate the samples represented in the pictures above are given by this code:
+\begin{lstlisting}[language=Python, numbers=none]
+#set the parameter dictionary for the MV normal. sigma is the standard deviation
+mu_c0_1 = [0,0]
+mu_c0_2 = [3,0]
+mu_c1 = [3,3]
+sigma_c0_1 = np.array([[1,0],
+                                       [0,3]])
+sigma_c0_2 = np.array([[1,0],
+                                       [0,1]])
+sigma_c1 = np.array([[2,1],
+                         		 [1,1]])
+    
+distributions = [st.multivariate_normal, st.beta]
+
+#set the parameter dictionaries as a list of dictionaries with parameter dictionaries for classes individually.
+dist_parameter_dicts = [
+	{'modes_c0': 2,
+          'modes_c1': 1,
+          'mixing_weights_c0': [0.4, 0.6],
+          'params_c0': {'mean': [mu_c0_1, mu_c0_2], 'cov': [sigma_c0_1, sigma_c0_2]},
+          'params_c1': {'mean': [mu_c1], 'cov': [sigma_c1]}
+           },
+         {'modes_c0': 1,
+          'modes_c1': 1,
+          'params_c0': {'a': [2,3], 'b': [4,5]},
+          'params_c1': {'a': [1,2], 'b': [7,8]}
+           }
+]
+
+size = [2700, 300]
+\end{lstlisting}
+
+To make the number of dictionaries and sub-dictionaries one has to create smaller the list values for the distribution parameter keys 
+in the \texttt{'params\_ci'} sub-dictionaries can either represent individual features or the modes of a feature of a distribution.
+For example the first two features are distributed according to a multivariate normal distribution where the \texttt{'modes\_c0'} parameter specifies that the
+majority class has two modes. Correspondingly the dictionary \texttt{'params\_c0'} has lists with two parameters as values that represent these modes.
+For the beta distribution, from which features three and four are sampled, similar lists represent the parameters for feature three (e.g. for class 0: $a = 2, b=4$)
+and feature four (again for class 0: $a = 3, b=5$) respectively.
+
+We realise that this convention makes the dictionaries somewhat of a pain to read, however we deemed it preferable to creating still more sub-dictionaries or lengthening
+the \texttt{dist\_parameter\_dicts} list, which would have made it still more convoluted to create for higher feature numbers.
+
+Hopefully a description and seeing the code of the generator class makes the structure clear.
+The initialisation method and the \texttt{create\_data} method of the generator look as follows:
 
 \begin{lstlisting}[language=Python, numbers=none]
 class Multi_Modal_Dist_Generator:
@@ -149,8 +195,18 @@ class Multi_Modal_Dist_Generator:
 
         self.X = self.X[permuted_indices]
         self.y = self.y[permuted_indices]
-                
+\end{lstlisting}
 
+Essentially the class takes a list of distributions, the sizes and a list of parameter dictionaries over which the \texttt{create\_data} method iterates.
+The following process is done for each class separately, as the modes and number of samples for both classes can be different.
+For each parameter dictionary the method checks whether the list of distribution parameters it contains represents the parameters of a uni- or multimodal distribution.
+Depending on whether the \texttt{'modes\_ci'} parameter is greater than one or not the dictionary is passed to a different function of the class.
+After the iteration the samples of each class are concatenated along the features dimension, then the samples of both classes are put together and finally they are
+permuted to avoid a section-wise homogenous dataset.
+
+The actual generation of the samples happens in the functions \texttt{create\_multimodal\_features} and \texttt{create\_unimodal\_features} shown below.
+
+\begin{lstlisting}[language=Python, numbers=none]
     def create_multimodal_features(self, c_id, dist, params_dict, modes, mixing_weights):
 
         size = self.sizes[c_id]
@@ -197,20 +253,71 @@ class Multi_Modal_Dist_Generator:
 
         self.dists_sample_lists[f'c{c_id}'].extend(sample_features_list)
 
-    
-    def prepare_data(self, test_size = 0.2):
-        
-        self.create_data()
-
-        return train_test_split(
-            self.X, 
-            self.y, 
-            test_size = test_size,
-            stratify = self.y,
-            random_state=self.random_state
-            )
 \end{lstlisting}
 
+Here the common principle is to extract the parameters of individual features or modes from the lists in the dictionary, create the distribution objects with these parameters,
+and use their \texttt{.rvs} function to generate the samples.
+The \texttt{create\_multimodal\_features} function is more complex and solves a problem that merits a more detailed description.
+The common approach to simulate samples from a multimodal distribution is to use mixing weights for the individual components 
+and sample from each component distributions according to this weight. 
+A problem we needed to solve was that multiplying the desired size with the mixing weights did not guarantee an integer number of samples to sample from that component.
+Rounding up or down would have altered the total number of samples in the mix and made concatenation with the other features impossible.
+The solution we came up with was to introduce an additional random element and using a multinomial distribution to draw the number of samples
+that each component would contribute randomly, but with a probability equal to their respective mixing weights.
+This turned out to be an elegant and functional solution that represents the mixing components fairly accurately, especially for large sample sizes. \\
+
+In order to use this generator we created a second version of the pipeline. 
+This version differs little from the first approach in principle but has significantly more complicated code as we experimented with the idea of localising iteration, 
+that we had previously done with additional for-loops, to the dedicated classes in the hope of greater efficiency due to less need to pass datasets and recreate instances.
+So for example, instead of initialising the classifier class for each classifier individually this version initialises the \texttt{DictIterClassifier} with all used classifiers at once.
+As the approach didn't significantly improve computational performance and was superseded by the FMLP approach described in the next chapter
+we just representatively show the \texttt{DictIterClassifier} here.
+
+\begin{lstlisting}[language=Python, numbers=none]
+class DictIterClassifier(BaseEstimator, ClassifierMixin):
+
+    def __init__(self, classifiers_dict = {}, classifier_params = {'random_state': 42}):
+
+        classifier_list = [(name, classifier) for name, classifier in classifiers_dict.items()]
+
+        if not isinstance(classifier_params, list):
+            self.classifier_params = [classifier_params for _ in range(len(classifier_list))]
+        else:
+            self.classifier_params = classifier_params
+
+        self.classifier_dict_list = [{'name': name, 'classifier': classifier(**params)}
+                                      for (name, classifier), params in zip(classifier_list, self.classifier_params)]
+
+
+    def fit(self, X, y):
+        
+        self.classifiers_dict_list = [
+            {**dict, 'classifier': dict['classifier'].fit(X,y)} 
+            for dict in self.classifier_dict_list
+        ]
+        return self
+    
+
+    def predict(self, X):
+            
+        predictions_dict_list = [
+            dict(
+                 {key: val for key,val in clsf_dict.items() if key != 'classifier'},
+                 **{
+                     'predicted_proba': clsf_dict['classifier'].predict_proba(X),
+                     'predicted_y': clsf_dict['classifier'].predict(X),
+                     'classes': clsf_dict['classifier'].classes_
+                    }
+            )
+            for clsf_dict in self.classifier_dict_list
+        ]
+        
+        return predictions_dict_list
+        
+\end{lstlisting}
+
+While this pipeline approach didn't reap significant benefits compared to the original version, apart from functioning with the new generator, 
+the elaborate transformations of and iterations over compositions of lists and dictionaries proved very helpful in the design of the FMLP approach.
 
 \subsection{Fast Pipeline Approach (FMLP)}
 
