@@ -1,0 +1,97 @@
+\section{Experiments and Results}
+
+There are an abundance of papers and studies that investigate the effect of imbalanced data and the diverse balancing algorithms in classification.
+While researching for this project we saw many evaluation tables representing the performance of binary classifiers in a variety of circumstances.
+We concluded that obtaining comprehensive results is beyond the scope of this team project, but we conducted experiments 
+and we hope they can add something of value to the existing research, or at the very least, give the reader an overview of the overall challenges and tradeoffs involved.
+
+There are some common truths established in previous research that we can state in advance.
+For one, the number of available samples and the class imbalance ratio have a great effect on the success of any balancing method and classifier.
+If there are only a handful of samples of the minority class available, because either the sample size is too low or the imbalance ratio to steep,
+then no balancer or classifier will perform well.
+One can also not hope for good performance if the number of features in which the class distributions have significant differences is too low, or
+the sample clusters have too much overlap.
+
+Our first experiment investigates this effect of class cluster distance in a simplified context of standard multivariate normal distributions.
+
+
+\subsection{Cluster Distance Experiment}
+
+When we conducted this experiment with the custom generator described in the previous section we came up with a function 
+that generated the necessary parameter dictionaries for a standard multivariate distribution of i.i.d. components.
+The idea was to have the mean of one cluster situated at the origin and the mean of the other at varying distance from it in the first orthant with all feature component
+values being equal. We derived the corresponding for the latter mean like this:
+
+Given a euclidian distance $d$ from the origin in $\mathbb{R}^n$, the coordinates of a vector $x \in \mathbb{R}^n$ with $x_1 = \dots = x_n$ are given by
+\[
+\begin{aligned}
+	& \, d = \sqrt{ \sum_{j =1}^n x_j^2} = \sqrt{ n x_j^2} \\
+	\Leftrightarrow& d^2 = n x_j^2 \\ 
+	\Leftrightarrow& x_j = \frac{d}{\sqrt{n}} \\ 
+\end{aligned}
+\]
+
+This formula for the coordinate components shows one of the faces of the phenomenon known as the "curse of dimensionality".
+As the number of dimensions, $n$ in this case, increases the magnitude of the individual feature components decreases, bringing them closer to the origin.
+So while the euclidian distances may be the same, the individual components of each cluster move closer together.
+An algorithm that attempts to distinguish the clusters component-wise (as is necessary in the independent case we assume) will hence struggle severely to
+distinguish the classes in higher dimensions. This is also what we observed in practice.
+
+We ran the experiment with the FMLP pipeline using all combinations of unbalanced data, data balanced by \texttt{SMOTE}, \texttt{ADASYN}, \texttt{BorderlineSMOTE} and 
+\texttt{SVMSMOTE} and the classifiers \texttt{LogisticRegression}, \texttt{DecisionTreeClassifier}, \texttt{Random Forest}, \texttt{XGboost} and \texttt{Lightgbm}.
+These were used for all combinations of data with $10.000$ and $100.000$ samples, class ratios of $10\%$ and $1\%$ minority class and feature numbers $2,4,6,8$.
+This produced a large table of some 2700 entries that we intend to summarise here.
+
+\begin{comment}
+% for some reason this block does not work at all, while the others do
+%\begin{tabular}{|r*{6}{|c}|}
+\begin{tabular}{|*{6}{|c}|}
+	\bfseries {cluster distance} & \bfseries accuracy & \bfseries precision & \bfseries  recall & \bfseries {F1 score} & \bfseries {ROC AUC Score} \\% specify table head
+	%cluster distance & accuracy & precision & recall & F1 score &  ROC AUC Score % specify table head
+	\csvreader[head to column names]{assets/tables/distance_mean_values.csv}{}{
+	\csvcoli & \csvcolii & \csvcoliii & \csvcoliv & \csvcolv  & \csvcolvi %\thecsvrow &
+	}% specify your coloumns here
+	\\\hline
+\end{tabular}
+\end{comment}
+
+We obtained the following table by grouping by the cluster distance and taking the mean across entries.
+\begin{table}[H]
+\centering
+%\csvautotabular{assets/tables/distance_mean_values.csv}
+\csvreader[
+	tabular = *{6}{|c}|,
+	table head = \hline \bfseries {cluster distance} & \bfseries accuracy & \bfseries precision & \bfseries  recall & \bfseries {F1-score} & \bfseries {ROC AUC Score}\\\hline, 
+	late after line = \\\hline
+	]{assets/tables/distance_mean_values.csv}{}{%
+	\csvcoli & \csvcolii & \csvcoliii & \csvcoliv & \csvcolv  & \csvcolvi
+}
+\caption{Table aggregated by cluster distance}
+\end{table}
+
+What comes as no surprise is that the performance in every standard metric is on average better, the further the clusters are apart. 
+Interestingly accuracy remains relatively high even for low distances while precision and F1-score decline dramatically when the clusters are close.
+This demonstrates the "inadequacy of accuracy" (cite) as a measure of classifier performance in this context.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

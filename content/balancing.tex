@@ -1,5 +1,13 @@
 \subsection{Data balancing}
-As for the data balancing step, here are some important characteristics that determine the usefulness of a balancer:
+
+A data balancer attempts to close the gap between the number of samples in the majority class and the ones in the minority class.
+This can be done by undersampling the majority class, oversampling the minority class or creating artificial samples for the minority class.
+There is a fundamental problem apparent when thinking of how the latter can be accomplished:
+If we knew the characteristics that distinguish the minority class from the majority class so well, that we could reliably create samples from it,
+then the entire classification step would in a way be redundant as we could already assert class membership by those characteristics.
+For this reason, SMOTE and other synthetic sampling methods can only produce imperfect representations of the real minority distributions.
+
+With this in mind here are some important characteristics that we would hope a useful balancer can fulfill:
 \begin{enumerate}[label=$\bullet$]
 \item The balancer should be generalisable and applicable to different levels of imbalance and subsequent classification methods;
 \item It should maintain the actual class structure and represent the minority class pattern accurately;
