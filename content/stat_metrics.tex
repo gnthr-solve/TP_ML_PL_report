@@ -6,7 +6,7 @@ Given the true y-values of a test set and classifiers predictions on the corresp
 
 \begin{figure}[H]
 	\centering
-  	\includegraphics[width=\linewidth]{assets/confusion_matrix.png}
+  	\includegraphics[width=0.75\linewidth]{assets/confusion_matrix.png}
   	\captionof{figure}{Confusion Matrix}
   	\label{fig:confusion_matrix}
 \end{figure}
@@ -61,18 +61,20 @@ which applied to precision and recall becomes
 \]
 There are also weighted versions of the F1-score that are supposed to take into account whether recall or precision are more important in a given situation.
 
+Given the test set the classifiers we used in our project predict the probabilities of class membership for each sample.
+The standard way in which they then map these probabilities to a class prediction is by simply predicting the class with the largest probability.
 
 Another important measure that provides a more comprehensive assessment of a classifiers performance is the \textbf{Receiver Operator Characteristic (ROC)}.
 On a theoretical level, supposing here $X$ is the random variable representing the distribution of the feature vectors 
 and our classifier outputs a continuous probability score $s(X)$, the ROC is obtained by considering different cutoff thresholds for that score.
 Set the threshold $\tau$ to decide the predicted class such that if $s(X) > \tau$, we predict the positive class. 
 Then the true positive rate (TPR) and the false positive rate (FPR) are given by
-
-    	\begin{align*}
+\[
+    	\begin{aligned}
     		TPR(\tau) &= \mathbb{P}(s(X) > \tau | Y = 1) \\
     		FPR(\tau) &= \mathbb{P}(s(X) > \tau | Y = 0)
-    	\end{align*}
-
+    	\end{aligned}
+\]
 where $Y$ is the r.v. representing the true class of $X$ for every realisation. 
 TPR is the probability that the classifier ranks a randomly chosen positive instance higher than a randomly chosen negative instance. 
 Similarly, FPR is the probability that the classifier ranks a randomly chosen negative instance higher than a randomly chosen positive instance.
@@ -90,90 +92,94 @@ assuming that one positive and one negative instance are chosen at random.
 
 In practice ROC curves and AUC values are obtained by sorting the classified samples by score thus AUC is essentially a rank order statistic.
 
-	
-	
-\subsection{Net Benefit}
-	The choice of risk threshold implicitly conveys the adopted relative misclassification costs. 
-	It can be derived that the odds of the risk threshold equal the harm-to-benefit ratio, which is the harm of a false positive divided by the benefit of a true positive.
-	For example, if a risk threshold of $20\%$ is used, the odds are 1 to 4. 
-	Therefore, a $20\%$ risk threshold assumes that the harm of a false positive is one-quarter of the benefit of a true positive or that 1 true positive is worth 4 false positives: 
-	A clinician might express this in terms such as ‘‘I would not do more than five biopsies to find one cancer.’’ 
-	Hence, when applying a model to a set of patients,
-	we can correct the number of true positives (TP) for the number of false positive (FP) using the odds $w$ of the risk threshold $t$: 
-	\[
-		\text{TP} - w \text{FP} = \text{TP} - \frac{\tau}{1-\tau} \text{FP}
-	\]
-	When dividing by the total sample size $N$, the Net Benefit is obtained
-	\[
-		\text{NB} = \frac{1}{N} (\text{TP} - w \text{FP}) = \frac{1}{N} (\text{TP} - \frac{\tau}{1-\tau} \text{FP})
-	\]
-	
-	The Net Benefit of treat-none is always 0, 
-	whereas the Net Benefit of treat-all is positive for risk thresholds below the event rate and negative for risk thresholds above the event rate.
-	
-	%Note that the mis- calibration induced by changing either the intercept or the slope does not affect AUC because the rank order of risks is not changed.
-	
-\subsection{Net Benefit and Risk Threshold}
-	Suppose r.v. $Y$ with outcome diseased $D$ or healthy $\neg D$.
-	Let $c_{TP}, c_{FP}, c_{TN}, c_{FN}$ then expected cost of predicting $\neg D$ is
-	\[
-		\mathbb{P}(Y = 1) c_{FN} + \mathbb{P}(Y = 0) c_{TN}
-	\]
-	
-	and expected cost for predicting $D$ is
-	\[
-		\mathbb{P}(Y = 1) c_{TP} + \mathbb{P}(Y = 0) c_{FP}
-	\]
-	
-	If we write $T = \mathbb{P}(Y = 1)$ we can rewrite to
-	\[
-		T c_{FN} + (1-T) c_{TN}
-	\]
-	and
-	\[
-		T c_{TP} + (1-T) c_{FP}
-	\]
-	One is indifferent about treatment if both expected costs are equal.
-	\[
-	\begin{aligned}
-		T c_{FN} + (1-T) c_{TN} &= T c_{TP} + (1-T) c_{FP} \\
-		&\Leftrightarrow \\
-		T &= \frac{c_{TN} - c_{FP}}{(c_{TN} - c_{FP}) + (c_{TP} - c_{FN})} \\
-	\end{aligned}
-	\]
-	It can also be rearranged in a different way
-	\[
-	\begin{aligned}
-		T c_{FN} + (1-T) c_{TN} &= T c_{TP} + (1-T) c_{FP} \\
-		&\Leftrightarrow \\
-		\frac{T}{1 - T} &= \frac{ c_{TN} - c_{FP} }{ c_{TP} - c_{FN} } \\
-	\end{aligned}
-	\]
-	
-	In the first group, the costs relate to undertreatment (false-negative classifications)
-	The costs of these false-negative classifications $c_{FN}$ should be compared to the costs of true-positive classifications $c_{TP}$.
-	The difference $c_{TP} - c_{FN}$ is the net benefit of treating all who have the disease compared to treating none of them.
-	Suppose you have a treatment that causes lots of damage as well as curing the disease. 
-	Then this difference might be low, i.e. treating everyone with the dangerous treatment does not give much better outcome than simply not treating anyone.
-	Suppose on the other hand you have a devastating disease like Polio and a low cost treatment like a Polio-vaccine, then that difference will be strongly positive.
-	
-	In the second group, relevant costs are for those without the event if not treated, who are treated (“overtreated”).
-	The costs of these false-positive classifications ($c_{FP}$) should be compared to the costs of true-negative classifications ($c_{TN}$)
-	while $c_{TN} - c_{FP}$ is the harm of treating all who don't have the disease compared to the benefit of not treating any of them.
-	E.g. the cost of not treating anyone without the disease might be 0 but the cost of treating them might be high. Then this value is strongly negative.
-	On the other hand suppose again a low impact vaccine that barely does harm, then that difference may be small negative. 
-	
-	Odds (cutoff) = Harm/Benefit
-	
-	The ratio in case of e.g. the polio vaccine could be strongly in favour of treating everyone (small cost for those without, high benefit for those with disease).
-	
+
+\subsubsection{Decision Theoretic Measures}
+For example in a clinical setting this approach may be flawed however. 
+Suppose the classifier is presented with mammography image data and the predicted probabilities for cancer in a case are $49\%$ for class $0$ (i.e. healthy tissue)
+and $51\%$ for class $1$ (i.e. malignancy). The classifier would confidently predict a cancer diagnosis that may incur a risky biopsy for the patient.
+Depending on the circumstances one might want to adapt or at least assess the probability threshold at which the classifier predicts class $1$.
+To assess a classifiers performance in a context like this measures have been proposed that take into account the predicted probabilities and the risks involved.
+
+\textbf{Risk Threshold}
+Suppose r.v. $Y$ with outcome diseased $D$ or healthy $\neg D$.
+Let $c_{TP}, c_{FP}, c_{TN}, c_{FN}$ then expected cost of predicting $\neg D$ is
+\[
+	\mathbb{P}(Y = 1) c_{FN} + \mathbb{P}(Y = 0) c_{TN}
+\]
+
+and expected cost for predicting $D$ is
+\[
+	\mathbb{P}(Y = 1) c_{TP} + \mathbb{P}(Y = 0) c_{FP}
+\]
+
+If we write $T = \mathbb{P}(Y = 1)$ we can rewrite to
+\[
+	T c_{FN} + (1-T) c_{TN}
+\]
+and
+\[
+	T c_{TP} + (1-T) c_{FP}
+\]
+One is indifferent about treatment if both expected costs are equal.
+\[
+\begin{aligned}
+	T c_{FN} + (1-T) c_{TN} &= T c_{TP} + (1-T) c_{FP} \\
+	&\Leftrightarrow \\
+	T &= \frac{c_{TN} - c_{FP}}{(c_{TN} - c_{FP}) + (c_{TP} - c_{FN})} \\
+\end{aligned}
+\]
+It can also be rearranged in a different way
+\[
+\begin{aligned}
+	T c_{FN} + (1-T) c_{TN} &= T c_{TP} + (1-T) c_{FP} \\
+	&\Leftrightarrow \\
+	\frac{T}{1 - T} &= \frac{ c_{TN} - c_{FP} }{ c_{TP} - c_{FN} } \\
+\end{aligned}
+\]
+
+In the first group, the costs relate to undertreatment (false-negative classifications)
+The costs of these false-negative classifications $c_{FN}$ should be compared to the costs of true-positive classifications $c_{TP}$.
+The difference $c_{TP} - c_{FN}$ is the net benefit of treating all who have the disease compared to treating none of them.
+Suppose you have a treatment that causes lots of damage as well as curing the disease. 
+Then this difference might be low, i.e. treating everyone with the dangerous treatment does not give much better outcome than simply not treating anyone.
+Suppose on the other hand you have a devastating disease like Polio and a low cost treatment like a Polio-vaccine, then that difference will be strongly positive.
+
+In the second group, relevant costs are for those without the event if not treated, who are treated (“overtreated”).
+The costs of these false-positive classifications ($c_{FP}$) should be compared to the costs of true-negative classifications ($c_{TN}$)
+while $c_{TN} - c_{FP}$ is the harm of treating all who don't have the disease compared to the benefit of not treating any of them.
+E.g. the cost of not treating anyone without the disease might be 0 but the cost of treating them might be high. Then this value is strongly negative.
+On the other hand suppose again a low impact vaccine that barely does harm, then that difference may be small negative. 
+
+Odds (cutoff) = Harm/Benefit
+
+The ratio in case of e.g. the polio vaccine could be strongly in favour of treating everyone (small cost for those without, high benefit for those with disease).
+
+
+\textbf{Net Benefit}
+The choice of risk threshold implicitly conveys the adopted relative misclassification costs. 
+It can be derived that the odds of the risk threshold equal the harm-to-benefit ratio, which is the harm of a false positive divided by the benefit of a true positive.
+For example, if a risk threshold of $20\%$ is used, the odds are 1 to 4. 
+Therefore, a $20\%$ risk threshold assumes that the harm of a false positive is one-quarter of the benefit of a true positive or that 1 true positive is worth 4 false positives: 
+A clinician might express this in terms such as ‘‘I would not do more than five biopsies to find one cancer.’’ 
+Hence, when applying a model to a set of patients,
+we can correct the number of true positives (TP) for the number of false positive (FP) using the odds $w$ of the risk threshold $t$: 
+\[
+	\text{TP} - w \text{FP} = \text{TP} - \frac{\tau}{1-\tau} \text{FP}
+\]
+When dividing by the total sample size $N$, the Net Benefit is obtained
+\[
+	\text{NB} = \frac{1}{N} (\text{TP} - w \text{FP}) = \frac{1}{N} (\text{TP} - \frac{\tau}{1-\tau} \text{FP})
+\]
+
+The Net Benefit of treat-none is always 0, 
+whereas the Net Benefit of treat-all is positive for risk thresholds below the event rate and negative for risk thresholds above the event rate.
 	
 	
 \subsection{Calibration}
-	Another key property of a prediction model is calibration, i.e., the agreement between observed outcomes and predictions.
-	\[
-		TPR(\tau) = \mathbb{P}(s(X) > \tau | Y = 1)
-	\]
+Another key property of a prediction model is calibration, i.e., the agreement between observed outcomes and predictions.
+\[
+	TPR(\tau) = \mathbb{P}(s(X) > \tau | Y = 1)
+\]
 
 
 \subsection{Mixed}
