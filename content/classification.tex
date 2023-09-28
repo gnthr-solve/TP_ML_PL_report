@@ -1,2 +1,72 @@
 \subsection{Classifiers}
-%describe each classifier and the class
+
+For the classification the following machine learning methods were
+selected: logistic regression, decision tree, random forest and XGBoost.
+
+Logistic Regression
+
+Logistic Regression is a statistical method used for classification task
+where there are one or more independent variables that can be used to
+predict the outcome of a categorical dependent variable (usually binary,
+i.e., having two classes). It applies a logistic function to a linear
+combination of the input features. The logistic function (also known as
+the sigmoid function) maps any real-valued number into a value between 0
+and 1. This makes it suitable for binary classification problems, as it
+models the probability of belonging to a particular class.
+
+Decision Tree
+
+Decision Trees are a type of supervised learning algorithm used for
+classification and regression tasks. They make decisions based on a
+series of questions about the features of the data. The algorithm works
+by recursively splitting the dataset based on the feature that provides
+the most information gain (or Gini impurity in the case of
+classification). Each split creates a node in the tree, and the process
+continues until a stopping criterion is met (e.g., a maximum depth is
+reached or a minimum number of samples in a node).
+
+Random Forest
+
+Random Forest is an ensemble learning method that combines multiple
+decision trees to improve the accuracy and robustness of the model. It
+builds multiple decision trees using different subsets of the training
+data and features. During prediction, each tree "votes" on the class,
+and the final prediction is determined by the majority vote. This helps
+to reduce overfitting and increase accuracy.
+
+XGBoost (Extreme Gradient Boosting)
+
+XGBoost is an ensemble learning method that has gained popularity for
+its exceptional performance in various machine learning competitions and
+real-world applications. It belongs to the family of gradient boosting
+algorithms and is known for its speed, accuracy, and ability to handle
+large datasets efficiently. This method has the following steps:
+
+Base Learners. XGBoost starts by training a weak model, often a decision
+tree with a shallow depth. This initial model predicts the target
+variable, but its accuracy may be limited.
+
+Loss Function and Gradient Descent. XGBoost uses a specific loss
+function, which quantifies the error between the predicted and actual
+values. Common loss functions include Mean Squared Error (MSE) for
+regression and Logarithmic Loss (or Log Loss) for classification. It
+employs gradient descent optimization to minimize this loss. Gradient
+descent is a technique that adjusts the model\textquotesingle s
+parameters (in this case, the tree structure) in a way that reduces the
+loss.
+
+Gradient and Hessian. XGBoost computes the gradient and the second
+derivative (Hessian) of the loss function with respect to the predicted
+values. This provides information about both the direction and the rate
+of change of the loss.
+
+Building Trees Iteratively. XGBoost builds trees in an iterative manner.
+For each iteration, it adds a new tree to the ensemble to correct the
+errors of the previous models. At each step, it computes the predictions
+of the ensemble and calculates the gradient and Hessian of the loss
+function for the residuals (errors).
+
+Combining Predictions. The final prediction is obtained by aggregating
+the predictions of all the individual trees. For regression tasks, this
+may involve taking the average of the predictions. In classification
+tasks, it may involve using a voting mechanism.
