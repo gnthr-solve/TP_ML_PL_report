@@ -1,0 +1,44 @@
+%% This BibTeX bibliography file was created using BibDesk.
+%% https://bibdesk.sourceforge.io/
+
+%% Created for Manuel Gnthr at 2023-09-28 21:07:05 +0200 
+
+
+%% Saved with string encoding Unicode (UTF-8) 
+
+
+
+@article{doi:10.1177/0272989X14547233,
+	abstract = { Decision-analytic measures to assess clinical utility of prediction models and diagnostic tests incorporate the relative clinical consequences of true and false positives without the need for external information such as monetary costs. Net Benefit is a commonly used metric that weights the relative consequences in terms of the risk threshold at which a patient would opt for treatment. Theoretical results demonstrate that clinical utility is affected by a model';s calibration, the extent to which estimated risks correspond to observed event rates. We analyzed the effects of different types of miscalibration on Net Benefit and investigated whether and under what circumstances miscalibration can make a model clinically harmful. Clinical harm is defined as a lower Net Benefit compared with classifying all patients as positive or negative by default. We used simulated data to investigate the effect of overestimation, underestimation, overfitting (estimated risks too extreme), and underfitting (estimated risks too close to baseline risk) on Net Benefit for different choices of the risk threshold. In accordance with theory, we observed that miscalibration always reduced Net Benefit. Harm was sometimes observed when models underestimated risk at a threshold below the event rate (as in underestimation and overfitting) or overestimated risk at a threshold above event rate (as in overestimation and overfitting). Underfitting never resulted in a harmful model. The impact of miscalibration decreased with increasing discrimination. Net Benefit was less sensitive to miscalibration for risk thresholds close to the event rate than for other thresholds. We illustrate these findings with examples from the literature and with a case study on testicular cancer diagnosis. Our findings strengthen the importance of obtaining calibrated risk models. },
+	author = {Ben Van Calster and Andrew J. Vickers},
+	date-added = {2023-09-28 20:29:19 +0200},
+	date-modified = {2023-09-28 20:29:19 +0200},
+	doi = {10.1177/0272989X14547233},
+	eprint = {https://doi.org/10.1177/0272989X14547233},
+	journal = {Medical Decision Making},
+	note = {PMID: 25155798},
+	number = {2},
+	pages = {162-169},
+	title = {Calibration of Risk Prediction Models: Impact on Decision-Analytic Performance},
+	url = {https://doi.org/10.1177/0272989X14547233},
+	volume = {35},
+	year = {2015},
+	bdsk-url-1 = {https://doi.org/10.1177/0272989X14547233}}
+
+@article{harm_imbalance,
+	abstract = {{Methods to correct class imbalance (imbalance between the frequency of outcome events and nonevents) are receiving increasing interest for developing prediction models. We examined the effect of imbalance correction on the performance of logistic regression models.Prediction models were developed using standard and penalized (ridge) logistic regression under 4 methods to address class imbalance: no correction, random undersampling, random oversampling, and SMOTE. Model performance was evaluated in terms of discrimination, calibration, and classification. Using Monte Carlo simulations, we studied the impact of training set size, number of predictors, and the outcome event fraction. A case study on prediction modeling for ovarian cancer diagnosis is presented.The use of random undersampling, random oversampling, or SMOTE yielded poorly calibrated models: the probability to belong to the minority class was strongly overestimated. These methods did not result in higher areas under the ROC curve when compared with models developed without correction for class imbalance. Although imbalance correction improved the balance between sensitivity and specificity, similar results were obtained by shifting the probability threshold instead.Imbalance correction led to models with strong miscalibration without better ability to distinguish between patients with and without the outcome event. The inaccurate probability estimates reduce the clinical utility of the model, because decisions about treatment are ill-informed.Outcome imbalance is not a problem in itself, imbalance correction may even worsen model performance.}},
+	author = {van den Goorbergh, Ruben and van Smeden, Maarten and Timmerman, Dirk and Van Calster, Ben},
+	date-added = {2023-09-28 20:22:31 +0200},
+	date-modified = {2023-09-28 21:06:52 +0200},
+	doi = {10.1093/jamia/ocac093},
+	eprint = {https://academic.oup.com/jamia/article-pdf/29/9/1525/45444435/ocac093.pdf},
+	issn = {1527-974X},
+	journal = {Journal of the American Medical Informatics Association},
+	month = {06},
+	number = {9},
+	pages = {1525-1534},
+	title = {{The harm of class imbalance corrections for risk prediction models: illustration and simulation using logistic regression}},
+	url = {https://doi.org/10.1093/jamia/ocac093},
+	volume = {29},
+	year = {2022},
+	bdsk-url-1 = {https://doi.org/10.1093/jamia/ocac093}}
