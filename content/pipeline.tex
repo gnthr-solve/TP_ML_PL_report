@@ -37,7 +37,107 @@ In the following we give a more detailed description of the created pipeline ver
 
 \subsection{First pipeline approach}
 
-%Your description here.....
+
+The experiment pipeline has the following steps:
+
+\begin{itemize}
+\item
+  Data Generation
+\item
+  Data Balancing
+\item
+  Data Classification
+\item
+  Output Analysis
+\end{itemize}
+
+For each step of the pipeline a Python class was created. In the
+following table one can see the main parameters of each of the classes.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1812}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3036}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2212}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2941}}@{}}
+\toprule()
+\begin{minipage}[b]{\linewidth}\raggedright
+Pipeline step
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Class
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Parameters
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} \\
+\midrule()
+\endhead
+\multirow{5}{*}{Data Generation} &
+\multirow{5}{*}{ImbalancedDataGenerator} & class\_ratio & The ratio of
+the minority class samples to the total samples \\
+& & n\_samples & The total number of samples to be generated \\
+& & n\_features & The number of features (dimensions) in the dataset \\
+& & distance & The distance between the centers of the two classes. A
+higher value indicates more separability \\
+& & test\_size & The ratio of the number of samples in the test dataset
+to the total number of samples \\
+Data Balancing & DataBalancer & balancer & The balancing method to be
+used for data balancing \\
+Data Classification & Classifier & classifier & The classiification
+method to be used for dataclassification \\
+\multirow{3}{*}{Running the experiment and analysis of the output} &
+\multirow{3}{*}{Study} & data\_generator & Instance of the
+ImbalancedDataGenerator class \\
+& & data\_balancer & Instance of the DataBalancer class \\
+& & data\_classifier & Instance of the Study class \\
+\bottomrule()
+\end{longtable}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule()
+\begin{minipage}[b]{\linewidth}\raggedright
+Class
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Method
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Description
+\end{minipage} \\
+\midrule()
+\endhead
+\multirow{2}{*}{ImbalancedDataGenerator} & generate\_data & Generates a
+dataset with properties defined when initializing the class instance
+makes train-test split of the data. \\
+& plot2d & Creating a 2-dimensional chart of the dataset \\
+DataBalancer & balance\_data & Creates a balanced dataset from
+imbalanced one using the passed method when initializing the class
+instance \\
+\multirow{2}{*}{Classifier} & fit & Fits the classifier that was passed
+when initializing the class instance \\
+& predict & Makes prediction using the classifier that was passes when
+initialized the class instance \\
+\multirow{3}{*}{Study} & run & Creates an imbalanced dataset using the
+instance of the ImbalancedDataGenerator class instance that was passed.
+Balances the dataset using the Datbalancer object. Fits an instance of
+the Classifier class on the training data and makes a prediction on the
+test data. \\
+& calculate\_metrics & Calculates all the necessary metrics for result
+evaluation \\
+& plot\_results & Creates a visualization of the results \\
+\bottomrule()
+\end{longtable}
+
+To conduct an experiment on the imbalanced data which consists of
+creating an imbalanced dataset with desired properties, balance the data
+with selected balancing methods, making classification with a particular
+classification method and then calculation the metrics characterizing
+the results of the classification and visualization of the results one
+
+Thus, the described implementation of the pipeline allows to change
+various parameters of data generation (e.g., imbalance ratio or number
+of samples), use various methods of data balancing and classification
+methods and conveniently perform experiments with various variations of
+these parameters and analyze the results.
 
 
 \subsection{Generator Generalisation and Localised Iteration Approach}
