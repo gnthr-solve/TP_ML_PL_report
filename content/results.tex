@@ -123,8 +123,24 @@ performed only marginally worse than its corresponding ensemble method: random f
 \subsection{Mode Experiment}
 
 For this experiment we attempted to investigate how a situation, where one of the class distributions is bimodal, affects the outcome of the balancing and classification steps.
-We set the clusters
-The first case we are going to look at is that the majority class  
+The dataset we generated for this has one million samples in $15$ dimensions and a class imbalance ratio of $0.5\%$. 
+The majority class has two modes, one at $\mu_{0,1} = (-5)_{j=1}^{15}$ and one at $\mu_{0,2} = (5)_{j=1}^{15}$ with i.i.d. components 
+and a variance of $\Sigma_{0,1} = 2 \mathbf{I}$ and $\Sigma_{0,2} = 0.7 \mathbf{I}$ respectively, where $\mathbf{I} \in \mathbb{R}^{15 \times 15}$ is the unit matrix.
+The minority class is unimodal and has mean $\mu_{1} = (0)_{j=1}^{15}$ and covariances $\text{cov}(X_i^1, X_j^1) = 1$ for $i \neq j$ and $\text{cov}(X_i^1, X_i^1) = 2$.
+Plotting $20.000$ of these samples in any two dimensions in a scatterplot gives us this picture:
+
+\begin{figure}[H]
+  	\centering
+  	\includegraphics[width=\linewidth]{assets/data_vis/Bimodal_Maj_Unimodal_Min.png}
+  	\captionof{figure}{Bimodal Majority vs Unimodal Minority Scatterplot}
+  	\label{fig:Mode_Experiment}
+\end{figure}
+
+While it is relatively straightforward to determine the means and covariance matrices to have the distributions look as desired in two dimensions, 
+it was not easy in $15$ dimensions. 
+Enforcing adequate distances feature-wise, maintaining the desired structure and guaranteeing that the covariance matrix is actually symmetric and positive semi-definite,
+is difficult if one wants the distributions to be non-trivial. 
+Here we settled for a simple but non-trivial approach to keep the data understandable for the reader.
 
 
 
