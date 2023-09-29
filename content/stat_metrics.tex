@@ -129,6 +129,8 @@ with mean frequency of occurrence on a test set.
 This is done by firstly sorting the predicted probabilities from lowest to highest and aligning them with the corresponding true class value.
 Then the aligned lists are binned and for each bin the mean predicted probability and the mean frequency of class $1$ occurrence are calculated.
 One then plots, either directly or after interpolation, the predicted probability versus the mean frequency.
+For details on the implementation please check the corresponding methods in the \texttt{IterMetrics} or \texttt{FMLP\_Metrics} class 
+in the \href{https://github.com/gnthr-solve/TP_ML_Pipeline}{github repository} of our project.
 
 If the predicted probabilities line up perfectly with the mean frequency they form a line matching the identity function.
 A model that fulfills this is called well calibrated.
