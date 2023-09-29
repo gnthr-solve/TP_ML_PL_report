@@ -21,7 +21,10 @@
 \usepackage{array}
 \usepackage{booktabs}
 %\usepackage[ruled, noend]{algorithm2e}
+<<<<<<< HEAD
+=======
 
+>>>>>>> f963fdef822489a5bc55d1206fa5f68cc90059ab
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows, positioning}
 
@@ -40,10 +43,14 @@
      }
     \date{30.09.2023}
 
+\usepackage{newunicodechar}
+\newunicodechar{⁠}{\nolinebreak}
+
 
 \input{content/def}
 \begin{document}
 %Inputs from content----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 \maketitle
 \tableofcontents
 
@@ -54,10 +61,34 @@
 \input{content/stat_metrics}
 \input{content/pipeline}
 \input{content/results}
+<<<<<<< HEAD
+%\input{content/Reference}
+%\input{content/Evaluating a New Marker for Risk Prediction Using the Test Tradeoff}
+%\input{content/harm_of_imbal_correction}
+=======
+>>>>>>> 4ccd340da6bd5d1b71064baa79d05816c3403084
 \input{content/hp_test_lin_reg}
 \input{content/references}
 
 
+\bibliography{references}
+\def\bibsection{\section{Reference}}
+\bibliographystyle{unsrt}
+\clearpage
 
 
+
+<<<<<<< HEAD
+%\begin{bibliography}{9}
+
+%\bibitem{SMOTE}
+% Nitesh, V., Chawla., Kevin, W., Bowyer., Lawrence, O., Hall., W., Philip, Kegelmeyer. (2002). SMOTE: synthetic minority over-sampling technique. Journal of Artificial Intelligence Research, 16(1):321-357. doi: 10.1613/JAIR.953
+
+
+%\bibitem{ADASYN}
+% Haibo He, Yang Bai, E. A. Garcia and Shutao Li, "ADASYN: Adaptive synthetic sampling approach for imbalanced learning," 2008 IEEE International Joint Conference on Neural Networks (IEEE World Congress on Computational Intelligence), Hong Kong, 2008, pp. 1322-1328, doi: 10.1109/IJCNN.2008.4633969.
+%\end{thebibliography}	
 \end{document}
+=======
+\end{document}
+>>>>>>> 4ccd340da6bd5d1b71064baa79d05816c3403084
