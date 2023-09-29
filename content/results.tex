@@ -98,7 +98,7 @@ When we instead group and aggregate the performance metrics by the balancer used
 We can see that both recall and AUC values are on average significantly improved by balancing the data.
 Precision however can be seen to decrease across balancing algorithms compared to training on unbalanced data.
 Considering that recall is higher but precision is lower we can conclude that the overall rate of false positives increases when using a balancing algorithm.
-This is most likely due to the often criticised (cite) tendency of balancing methods to lead to systematic over-prediction of minority class probabilities.
+This is most likely due to the often criticised (cite) tendency of balancing methods to lead to systematic over-prediction of minority class probabilities.\cite{harm_imbalance}
 We will show this tendency more clearly in the section on calibration curves.
 
 For completeness we also aggregated by classification method.

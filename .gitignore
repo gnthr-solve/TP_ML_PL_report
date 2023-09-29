@@ -8,3 +8,5 @@
 *.fls
 *.pdf
 *.DS_Store
+*.bbl
+*.blg
