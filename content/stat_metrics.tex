@@ -38,12 +38,21 @@ Precision represents the fraction of samples that have been correctly labeled po
 \]
 This measure allows to assess whether the classifier tends to be correct when labelling a sample as minority class.
 
+
+\textbf{False Positive Rate:}
+FPR gives the fraction of negative samples that are still incorrectly classified as positive.
+\[
+	\text{FPR} = \frac{FP}{TN + FP}
+\]
+It is used to compute the receiver operator characteristic and relates to the next measure.
+
 \textbf{Specificity:}
 Gives the fraction of samples classified as correctly negative versus all negatives.
 \[
-	\text{spec} = \frac{TN}{TN + FP}
+	\text{spec} = \frac{TN}{TN + FP} = 1 - \text{FPR}
 \]
 Specificity is especially important when assessing the frequency and potential cost of false positives.
+
 
 We have already described four different measures based on the confusion matrix, each of them assessing different aspects of the performance of a classifier.
 But since all of these contribute important information, and since a classifier can have good scores in one but bad scores in another, 
@@ -61,14 +70,19 @@ which applied to precision and recall becomes
 \]
 There are also weighted versions of the F1-score that are supposed to take into account whether recall or precision are more important in a given situation.
 
-Given the test set the classifiers we used in our project predict the probabilities of class membership for each sample.
+Given the test set, the classifiers we used in our project predict the probabilities of class membership for each sample.
 The standard way in which they then map these probabilities to a class prediction is by simply predicting the class with the largest probability.
+In practical application this approach may be flawed however. 
+For a good classifier the predicted probability, which represents the confidence it has that a new sample belongs in the respective class, 
+should closely match the actual probability of the class given the samples features. 
+When a classifiers decision involves risk a user might want select a specific probability threshold for a positive prediction.
 
-Another important measure that provides a more comprehensive assessment of a classifiers performance is the \textbf{Receiver Operator Characteristic (ROC)}.
+%Another important measure that provides a more comprehensive assessment of a classifiers performance is the 
+\textbf{Receiver Operator Characteristic (ROC)}
+ROC curves take this issue into account, by assessing the performance of a classifier across a range of probability thresholds.
 On a theoretical level, supposing here $X$ is the random variable representing the distribution of the feature vectors 
 and our classifier outputs a continuous probability score $s(X)$, the ROC is obtained by considering different cutoff thresholds for that score.
-Set the threshold $\tau$ to decide the predicted class such that if $s(X) > \tau$, we predict the positive class. 
-Then the true positive rate (TPR) and the false positive rate (FPR) are given by
+Suppose that if $s(X) > \tau$, we predict the positive class, then the true positive rate (TPR) and the false positive rate (FPR) are given by
 \[
     	\begin{aligned}
     		TPR(\tau) &= \mathbb{P}(s(X) > \tau | Y = 1) \\
@@ -76,25 +90,54 @@ Then the true positive rate (TPR) and the false positive rate (FPR) are given by
     	\end{aligned}
 \]
 where $Y$ is the r.v. representing the true class of $X$ for every realisation. 
-TPR is the probability that the classifier ranks a randomly chosen positive instance higher than a randomly chosen negative instance. 
-Similarly, FPR is the probability that the classifier ranks a randomly chosen negative instance higher than a randomly chosen positive instance.
-    
+%In this theoretical context we can assign a new meaning to two measures we saw earlier:
+%TPR is the probability that the classifier ranks a randomly chosen positive instance higher than a randomly chosen negative instance. 
+%Similarly, FPR is the probability that the classifier ranks a randomly chosen negative instance higher than a randomly chosen positive instance.
+
 The ROC curve plots $TPR(\tau)$ against $FPR(\tau)$ for all possible thresholds $\tau$, producing a curve that ranges from $(0,0)$ to $(1,1)$.
 We can interpret a ROC plot as plotting the path of a function
 \[
 	f: \mathbb{R} \to [0,1]^2, \quad  \tau \mapsto (TPR(\tau), FPR(\tau))
 \]
-The \textbf{Area Under the ROC Curve (AUC)} then provides a single scalar value that represents the expected performance of the classifier.
-An AUC of $1$ indicates a perfect classifier, while an AUC of $0.5$ indicates a classifier that performs no better than random chance.
+
+\begin{figure}[H]
+  	\centering
+  	\includegraphics[width=\linewidth]{assets/Roc_curve.png}
+  	\captionof{figure}{Illustration of a ROC curve from wikipedia by MartinThoma}
+  	\label{fig:roc_curve}
+\end{figure}
+
+The \textbf{Area Under the ROC Curve (AUC)} is, as the name suggests, the integral of the area under the ROC curve of a model
+It provides a single scalar value that represents the expected performance of the classifier under a variety of cutoff thresholds.
+An AUC of $1$ indicates perfect discrimination, while an AUC of $0.5$ indicates a prediction performance no better than random chance.
 
 AUC can also be interpreted in terms of the probability that the classifier will rank a randomly chosen positive instance higher than a randomly chosen negative instance,
-assuming that one positive and one negative instance are chosen at random.
+assuming that one positive and one negative instance are chosen at random \cite{hanley1982meaning}.
 
 In practice ROC curves and AUC values are obtained by sorting the classified samples by score thus AUC is essentially a rank order statistic.
 
+\textbf{Calibration}
+We mentioned before that a classifiers probability predictions should in a perfect world correspond to the actual class membership probability of a feature vector.
+Expressed theoretically again this would mean for the probability function $p$ of the classifier that given a new feature sample $x_\text{new}$
+\[
+	p(x_\text{new}) = \mathbb{P}(Y = 1 | X = x_\text{new})
+\]
+Of course the conditional probability on the right hand side of this equation is unknown in practice and thus this condition cannot be directly evaluated.
+Calibration curves make some simplifications to still have some measure of how good the probability predictions of a model are.
+Instead of matching the classifiers prediction with the conditional probability a calibration curve is created by comparing mean predicted probabilities 
+with mean frequency of occurrence on a test set.
+This is done by firstly sorting the predicted probabilities from lowest to highest and aligning them with the corresponding true class value.
+Then the aligned lists are binned and for each bin the mean predicted probability and the mean frequency of class $1$ occurrence are calculated.
+One then plots, either directly or after interpolation, the predicted probability versus the mean frequency.
 
+If the predicted probabilities line up perfectly with the mean frequency they form a line matching the identity function.
+A model that fulfills this is called well calibrated.
+What seems counterintuitive at first sight is that a model can have an excellent AUC value but at the same time be poorly calibrated and vice versa.
+An optimal model would have both good calibration and good discrimination, but this is difficult to achieve.
+Especially for imbalanced datasets one often has to sacrifice one for the other.
+
+\begin{comment}
 \subsubsection{Decision Theoretic Measures}
-For example in a clinical setting this approach may be flawed however. 
 Suppose the classifier is presented with mammography image data and the predicted probabilities for cancer in a case are $49\%$ for class $0$ (i.e. healthy tissue)
 and $51\%$ for class $1$ (i.e. malignancy). The classifier would confidently predict a cancer diagnosis that may incur a risky biopsy for the patient.
 Depending on the circumstances one might want to adapt or at least assess the probability threshold at which the classifier predicts class $1$.
@@ -174,35 +217,5 @@ When dividing by the total sample size $N$, the Net Benefit is obtained
 The Net Benefit of treat-none is always 0, 
 whereas the Net Benefit of treat-all is positive for risk thresholds below the event rate and negative for risk thresholds above the event rate.
 	
-	
-\subsection{Calibration}
-Another key property of a prediction model is calibration, i.e., the agreement between observed outcomes and predictions.
-\[
-	TPR(\tau) = \mathbb{P}(s(X) > \tau | Y = 1)
-\]
-
-
-\subsection{Mixed}
-	\begin{align*}
-    		\color{teal} TPR(\tau) &= \mathbb{P}(s(X) > \tau | Y = 1) \\
-    		\color{purple} FPR(\tau) &= \mathbb{P}(s(X) > \tau | Y = 0) \\
-    	\end{align*}
-
-
-\begin{comment}
-\subsection{Accuracy rate}
-
-	If benefit and harm are weighted equally, the odds of the threshold is 1:1, or a threshold probability of $50\%$. 
-	This cutoff is by default considered in the calculation of the error rate, which is defined as (FN + FP)/N. 
-	The complement is the accuracy rate: (TN + TP)/N.
-	Often FN classifications are more important than FP classifications, which makes the accuracy rate not a sensible indicator of clinical usefulness.
-	Other disadvantages include that the accuracy rate by definition is high for a frequent or infrequent outcome (i.e. imbalanced data).
-	
-	The accuracy rate is usually calculated at the simplistic cutoff of $50\%$, but can also be calculated at clinically defendable thresholds. 
-	The harm-to-benefit ratio that underpins the choice of the cutoff should then be used to calculate a weighted accuracy, or its complement, the weighted error rate.
-	We can express the TN classifications in units of the TP classifications, such that the weighted accuracy is calculated as (TP + w TN)/n.
-	
-	The improvement that is obtained by making decisions based on predictions from the model is the difference between the weighted accuracy
-	obtained with the model versus the weighted accuracy of the default policy.
 \end{comment}
 	

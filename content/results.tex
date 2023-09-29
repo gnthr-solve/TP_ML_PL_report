@@ -141,6 +141,14 @@ it was not easy in $15$ dimensions.
 Enforcing adequate distances feature-wise, maintaining the desired structure and guaranteeing that the covariance matrix is actually symmetric and positive semi-definite,
 is difficult if one wants the distributions to be non-trivial. 
 Here we settled for a simple but non-trivial approach to keep the data understandable for the reader.
+We again used the same balancers and classifiers as in the distance experiment. 
+One notable occurrence during the execution of the pipeline was, that fitting \texttt{Random Forest}, typically a fast method, took an exceptionally long time,
+namely more than all the other classifiers involved put together.  
+This long fitting time might be due to the bimodal setup of the dataset: As a random forest algorithm randomly splits the dataset ahead of time, it could be that subsets 
+are chosen that complicate finding splits that reduce entropy.
+
+We hence decided to forego rand
+
 
 
 
