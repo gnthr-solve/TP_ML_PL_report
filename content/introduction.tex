@@ -5,7 +5,12 @@ It has become increasingly apparent that imbalanced datasets can lead to subopti
  
 Over the years, extensive research has been dedicated to exploring diverse approaches for handling imbalanced data classification. These methods can broadly be categorized into three distinct groups: data-level methods, algorithm-level methods, and hybrid methods. 
 
+
 \textbf{Data-Level Methods} 
+
+It has become increasingly apparent that imbalanced datasets can lead to suboptimal classification results, prompting researchers to explore solutions to mitigate its impact. 
+The class imbalance problem is widespread, affecting a substantial portion of the data mining community.
+It is essential to understand that class imbalances can manifest in various application domains, including fraud detection, risk management, text classification, and medical diagnosis. In some cases, these imbalances are inherent to the problem, while in others, they arise due to limitations in data collection processes or the need for human intervention in selecting examples for training.
 
 Data-level methods play a crucial role in mitigating class imbalance issues by manipulating the training data to achieve a more balanced class distribution. This is primarily accomplished through resampling techniques during the data pre-processing stage. Resampling involves redistributing the training data across different classes in the data space, with the aim of restructuring the dataset to address class imbalances effectively. Research has shown that resampling can notably enhance the model's performance by adjusting the analog distribution of samples. 
 These methods can be further categorized into under-sampling, over-sampling, and hybrid approaches. Under-sampling involves reducing the number of samples in the majority class, while over-sampling focuses on augmenting the samples in the minority class. Hybrid methods combine elements of both under-sampling and over-sampling techniques to achieve a balanced dataset. It's important to note that the selection of target samples for pre-processing is a critical consideration. Random approaches, while common, can lead to the inadvertent removal of crucial samples or the introduction of synthetic data lacking meaningful representation. Consequently, more advanced methods have been proposed to preserve the underlying group structures and generate new data in accordance with the inherent distributions.
