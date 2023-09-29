@@ -15,6 +15,10 @@
 \usepackage{float}
 \usepackage{listings}
 %\usepackage[ruled, noend]{algorithm2e}
+<<<<<<< HEAD
+=======
+
+>>>>>>> f963fdef822489a5bc55d1206fa5f68cc90059ab
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows, positioning}
 
@@ -33,12 +37,16 @@
      }
     \date{30.09.2023}
 
+\usepackage{newunicodechar}
+\newunicodechar{⁠}{\nolinebreak}
+
 
 \input{content/def}
 \begin{document}
 %Inputs from content----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 \maketitle
-%\tableofcontents
+\tableofcontents
 
 \input{content/introduction}
 \input{content/methods}
@@ -53,11 +61,10 @@
 \input{content/hp_test_lin_reg}
 
 
-
-\def\bibsection{\section{Reference}}
-\bibliographystyle{plain}
-\clearpage
 \bibliography{references}
+\def\bibsection{\section{Reference}}
+\bibliographystyle{unsrt}
+\clearpage
 
 
 

@@ -54,7 +54,7 @@ This method determines if a minority class instance is eligible for oversampling
 
 Furthermore, implementing specific variants like Borderline-SMOTE I or Borderline-SMOTE II can be advantageous, especially in cases with outliers or sparsely scattered minority observations. These variants provide an extra layer of refinement to the oversampling process, enhancing the algorithm's performance.
 
-In essence, Borderline-SMOTE's targeted approach, coupled with its careful consideration of instance eligibility, equips it to strengthen the learning process, particularly in regions near class boundaries where accurate classification is most critical. By incorporating this technique, imbalanced datasets can undergo a tailored oversampling treatment, ultimately improving the model's ability to navigate complex class boundaries \cite{Nguyen2009}, \cite{Gupta2018}, \cite{Brandt2020}.
+In essence, Borderline-SMOTE's targeted approach, coupled with its careful consideration of instance eligibility, equips it to strengthen the learning process, particularly in regions near class boundaries where accurate classification is most critical. By incorporating this technique, imbalanced datasets can undergo a tailored oversampling treatment, ultimately improving the model's ability to navigate complex class boundaries~\cite{Nguyen2009,Gupta2018,Brandt2020}.
 
 
 %\subsubsection{K-means SMOTE}
@@ -65,7 +65,7 @@ The ADASYN algorithm addresses class imbalance by generating synthetic observati
 
 It generates additional synthetic observations for minority class instances located in regions where there are more majority class observations within the k-nearest neighbors' range. Conversely, if a minority observation has no majority class neighbors within this range, no synthetic data is generated for that particular instance. The rationale behind this lies in the understanding that instances without nearby majority class samples are inherently more challenging to learn than those situated further from majority class observations.
 
-Fundamentally, ADASYN's approach is rooted in the adaptive generation of minority data samples, tailoring the synthesis process to the distribution and learning difficulty of the minority class \cite{Brandt2020}, \cite{He2008}.
+Fundamentally, ADASYN's approach is rooted in the adaptive generation of minority data samples, tailoring the synthesis process to the distribution and learning difficulty of the minority class~\cite{Brandt2020, He2008}.
 
 
 

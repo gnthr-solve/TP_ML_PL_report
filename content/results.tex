@@ -39,8 +39,9 @@ distinguish the classes in higher dimensions. This is also what we observed in p
 
 We ran the experiment with the FMLP pipeline using all combinations of unbalanced data, data balanced by \texttt{SMOTE}, \texttt{ADASYN}, \texttt{BorderlineSMOTE} and 
 \texttt{SVMSMOTE} and the classifiers \texttt{LogisticRegression}, \texttt{DecisionTreeClassifier}, \texttt{Random Forest}, \texttt{XGboost} and \texttt{Lightgbm}.
-These were used for all combinations of data with $10.000$ and $100.000$ samples, class ratios of $10\%$ and $1\%$ minority class and feature numbers $2,4,6,8$.
-This produced a large table of some 2700 entries that we intend to summarise here.
+These were used for all combinations of data with $10.000$ and $100.000$ samples, class ratios of $10\%$, $1\%$ and for $100.000$ also $0.1\%$ minority class,
+and feature numbers $2,4,6,8$.
+This produced a large table of some $4000$ entries that we intend to summarise here.
 
 \begin{comment}
 % for some reason this block does not work at all, while the others do
@@ -73,12 +74,57 @@ What comes as no surprise is that the performance in every standard metric is on
 Interestingly accuracy remains relatively high even for low distances while precision and F1-score decline dramatically when the clusters are close.
 This demonstrates the "inadequacy of accuracy" (cite) as a measure of classifier performance in this context.
 
+For sample sizes of $100.000$ and class ratio $0.1\%$ the balancing process failed at cluster distance $1$. 
+At this point the clusters have some much overlap and the minority class is in comparison so underrepresented 
+that attempting to find a minority class nearest neighbour to a minority class sample is often in vain.
+Another interesting insight is that in general the balancing step takes significantly longer the lower the distance between the clusters.
+At a distance of $4$ or $5$ FMLP completes the balancing step in seconds, while at a distance of $1.5$ or $1$ this step took up to half an hour to complete or failed entirely.
+
+When we instead group and aggregate the performance metrics by the balancer used we obtain the following table:
+
+\begin{table}[H]
+\centering
+%\csvautotabular{assets/tables/distance_mean_values.csv}
+\csvreader[
+	tabular = *{6}{|c}|,
+	table head = \hline \bfseries {balancer} & \bfseries accuracy & \bfseries precision & \bfseries  recall & \bfseries {F1-score} & \bfseries {ROC AUC Score}\\\hline, 
+	late after line = \\\hline
+	]{assets/tables/dist_bal_mean_values.csv}{}{%
+	\csvcoli & \csvcolii & \csvcoliii & \csvcoliv & \csvcolv  & \csvcolvi
+}
+\caption{Table aggregated by balancing method}
+\end{table}
+
+We can see that both recall and AUC values are on average significantly improved by balancing the data.
+Precision however can be seen to decrease across balancing algorithms compared to training on unbalanced data.
+Considering that recall is higher but precision is lower we can conclude that the overall rate of false positives increases when using a balancing algorithm.
+This is most likely due to the often criticised (cite) tendency of balancing methods to lead to systematic over-prediction of minority class probabilities.
+We will show this tendency more clearly in the section on calibration curves.
+
+For completeness we also aggregated by classification method.
+
+\begin{table}[H]
+\centering
+%\csvautotabular{assets/tables/distance_mean_values.csv}
+\csvreader[
+	tabular = *{6}{|c}|,
+	table head = \hline \bfseries {classifier} & \bfseries accuracy & \bfseries precision & \bfseries  recall & \bfseries {F1-score} & \bfseries {ROC AUC Score}\\\hline, 
+	late after line = \\\hline
+	]{assets/tables/dist_clsf_mean_values.csv}{}{%
+	\csvcoli & \csvcolii & \csvcoliii & \csvcoliv & \csvcolv  & \csvcolvi
+}
+\caption{Table aggregated by classification method}
+\end{table}
+
+The scores are fairly similar, but what seemed surprising to us was that a simple decision tree, which we mainly included for reference, 
+performed only marginally worse than its corresponding ensemble method: random forest.
 
 
+\subsection{Mode Experiment}
 
-
-
-
+For this experiment we attempted to investigate how a situation, where one of the class distributions is bimodal, affects the outcome of the balancing and classification steps.
+We set the clusters
+The first case we are going to look at is that the majority class  
 
 
 
