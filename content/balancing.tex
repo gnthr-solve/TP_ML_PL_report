@@ -60,7 +60,7 @@ In essence, Borderline-SMOTE's targeted approach, coupled with its careful consi
 %\subsubsection{K-means SMOTE}
 
 
-\textbf{ADASYN} is another synthetic sampler 
+\subsubsection{ADASYN} is another synthetic sampler 
 The ADASYN algorithm addresses class imbalance by generating synthetic observations tailored to the learning difficulty of specific minority class instances. It focuses on producing more synthetic data for minority observations that pose a greater challenge for the model to learn. This approach is similar to SMOTE, as it also creates synthetic observations for the minority class. However, ADASYN distinguishes itself by prioritizing the generation of synthetic data for instances that are comparatively harder to learn within the given model.
 
 It generates additional synthetic observations for minority class instances located in regions where there are more majority class observations within the k-nearest neighbors' range. Conversely, if a minority observation has no majority class neighbors within this range, no synthetic data is generated for that particular instance. The rationale behind this lies in the understanding that instances without nearby majority class samples are inherently more challenging to learn than those situated further from majority class observations.

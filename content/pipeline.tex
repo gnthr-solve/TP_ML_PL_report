@@ -415,6 +415,8 @@ class DictIterClassifier(BaseEstimator, ClassifierMixin):
 
 While this pipeline approach didn't reap significant benefits compared to the original version, apart from functioning with the new generator, 
 the elaborate transformations of and iterations over compositions of lists and dictionaries proved very helpful in the design of the FMLP approach.
+The modularity of this approach also allowed us to perform steps of the pipeline individually.
+For example this enabled us to show and plot the effect of various balancing methods.
 
 \subsection{Fast Pipeline Approach (FMLP)}
 

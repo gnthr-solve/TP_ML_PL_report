@@ -72,7 +72,7 @@ We obtained the following table by grouping by the cluster distance and taking t
 
 What comes as no surprise is that the performance in every standard metric is on average better, the further the clusters are apart. 
 Interestingly accuracy remains relatively high even for low distances while precision and F1-score decline dramatically when the clusters are close.
-This demonstrates the "inadequacy of accuracy" (cite) as a measure of classifier performance in this context.
+This demonstrates the "inadequacy of accuracy" (\cite{provost1997analysis}) as a measure of classifier performance in this context.
 
 For sample sizes of $100.000$ and class ratio $0.1\%$ the balancing process failed at cluster distance $1$. 
 At this point the clusters have some much overlap and the minority class is in comparison so underrepresented 
@@ -98,8 +98,8 @@ When we instead group and aggregate the performance metrics by the balancer used
 We can see that both recall and AUC values are on average significantly improved by balancing the data.
 Precision however can be seen to decrease across balancing algorithms compared to training on unbalanced data.
 Considering that recall is higher but precision is lower we can conclude that the overall rate of false positives increases when using a balancing algorithm.
-This is most likely due to the often criticised (cite) tendency of balancing methods to lead to systematic over-prediction of minority class probabilities.\cite{harm_imbalance}
-We will show this tendency more clearly in the section on calibration curves.
+This is most likely due to the often criticised tendency of balancing methods to lead to systematic over-prediction of minority class probabilities \cite{harm_imbalance}.
+We will show this tendency more clearly in the later calibration curves.
 
 For completeness we also aggregated by classification method.
 
@@ -119,6 +119,11 @@ For completeness we also aggregated by classification method.
 The scores are fairly similar, but what seemed surprising to us was that a simple decision tree, which we mainly included for reference, 
 performed only marginally worse than its corresponding ensemble method: random forest.
 
+The distance experiment showed something clearly that was intuitively already clear to most:
+Classifying or balancing clusters that become virtually indistinguishable due to their proximity is a hard task.
+And while usually the classification algorithms take up much more computation time than the balancing methods, 
+this trend reverses when the datasets are very close together.
+
 
 \subsection{Mode Experiment}
 
@@ -131,7 +136,7 @@ Plotting $20.000$ of these samples in any two dimensions in a scatterplot gives 
 
 \begin{figure}[H]
   	\centering
-  	\includegraphics[width=\linewidth]{assets/data_vis/Bimodal_Maj_Unimodal_Min.png}
+  	\includegraphics[width=0.75\linewidth]{assets/data_vis/Bimodal_Maj_Unimodal_Min.png}
   	\captionof{figure}{Bimodal Majority vs Unimodal Minority Scatterplot}
   	\label{fig:Mode_Experiment}
 \end{figure}
@@ -147,9 +152,79 @@ namely more than all the other classifiers involved put together.
 This long fitting time might be due to the bimodal setup of the dataset: As a random forest algorithm randomly splits the dataset ahead of time, it could be that subsets 
 are chosen that complicate finding splits that reduce entropy.
 
-We hence decided to forego rand
+The following table shows the complete results of that experiment with respect to the standard measures rounded to the 4th decimal.
+\begin{table}[H]
+\centering
+\footnotesize
+%\csvautotabular{assets/tables/distance_mean_values.csv}
+\csvreader[
+	tabular = *{7}{|c}|,
+	table head = \hline \bfseries {balancer} & \bfseries {classifier} &\bfseries accuracy & \bfseries precision & \bfseries  recall & \bfseries {F1-score} & 
+	\bfseries {ROC AUC Score}\\\hline, 
+	late after line = \\\hline
+	]{assets/tables/bimodal_full_table.csv}{}{%
+	\csvcolii & \csvcoliii & \csvcoliv & \csvcolv  & \csvcolvi & \csvcolvii & \csvcolviii
+}
+\caption{Full table of Bimodal results}
+\end{table}
 
+We can see that performance is excellent across the board with the exception of logistic regression. 
+Usually logistic regression performed very well in all previous experiments, but we can clearly see one of its biggest flaws as a linear method.
+As the classes are not linearly separable, logistic regression fails in all metrics, except for accuracy on the unbalanced test.
 
+Apart from logistic regression, the other models are also well calibrated, shown here exemplary for the models balanced with KMeansSMOTE.
+\begin{figure}[H]
+  	\centering
+  	\includegraphics[width=0.9\linewidth]{assets/calibration_curves/Calibration_Curves_KMeansSMOTE.png}
+  	\captionof{figure}{Calibration Curves of all Classifiers balanced with KMeansSMOTE}
+  	\label{fig:Cal_Curves_KMeansSMOTE}
+\end{figure}
+
+We assume that the overall great performance of the remaining classifiers is due to the comparatively large distances between the clusters.
+To verify this assumption we tested the same dataset again, with majority means at $\mu_{0,1} = (-3)_{j=1}^{15}$ and one at $\mu_{0,2} = (3)_{j=1}^{15}$,
+although to save computation time with a reduced sample size of $100.000$ samples. 
+We also excluded logistic regression, as we cannot expect it to do any better in this scenario, and the KMeansSMOTE algorithm 
+as it failed to find sufficient minority class samples in the process.
+
+This produced results that were still fairly good in all metrics, one can observe the tendency towards decline however.
+\begin{table}[H]
+\centering
+\footnotesize
+%\csvautotabular{assets/tables/distance_mean_values.csv}
+\csvreader[
+	tabular = *{7}{|c}|,
+	table head = \hline \bfseries {balancer} & \bfseries {classifier} &\bfseries accuracy & \bfseries precision & \bfseries  recall & \bfseries {F1-score} & 
+	\bfseries {ROC AUC Score}\\\hline, 
+	late after line = \\\hline
+	]{assets/tables/bimodal_lower_dist_full_table.csv}{}{%
+	\csvcolii & \csvcoliii & \csvcoliv & \csvcolv  & \csvcolvi & \csvcolvii & \csvcolviii
+}
+\caption{Full table of results with lower cluster distance}
+\end{table}
+
+Here the calibration was also not as good as before and in the following plot, this time made with all combinations of balancers and classifiers,
+we can see the tendency towards over-prediction that balancing introduces.
+
+\begin{figure}[H]
+  	\centering
+  	\includegraphics[width=0.9\linewidth]{assets/calibration_curves/All_Calibration Curves_lower_dist.png}
+  	\captionof{figure}{Calibration Curves of all Balancers and Classifiers upon reduced cluster distance}
+  	\label{fig:Cal_Curves_All_low_dist}
+\end{figure}
+
+Overall we can say that most classifiers and balancers handle bimodal distributions well in this experiment, as long as they are in principle fit for the task.
+A possible takeaway, considering the poor performance of logistic regression, is that understanding the shapes and positions in space,
+of the data distributions one attempts to model, is in fact crucial to select the right methods for the task.
+
+While not specifically a result of the experiment, the particular shape of the distributions lead to interesting plots
+that visualised the behaviour of the various balancing algorithms.
+Hence we include one of those plots for the SVMSMOTE balancer, leaving the interpretation to the reader.
+\begin{figure}[H]
+  	\centering
+  	\includegraphics[width=0.9\linewidth]{assets/data_vis/Scatter_of_SVMSMOTE_bimodal_experiment.png}
+  	\captionof{figure}{Original data plus SVMSMOTE}
+  	\label{fig:bimodal_svmsmote}
+\end{figure}
 
 
 

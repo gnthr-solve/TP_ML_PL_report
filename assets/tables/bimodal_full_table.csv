@@ -1,0 +1,36 @@
+,balancer,classifier,accuracy,precision,recall,F1 score,ROC AUC Score
+0,Unbalanced,Logistic Regression,0.99,0.0,0.0,0.0,0.5
+1,Unbalanced,Decision Tree,0.9997,0.9835,0.982,0.9827,0.9909
+2,Unbalanced,Random Forest,0.9999,1.0,0.9905,0.9952,0.9952
+3,Unbalanced,XGboost,1.0,1.0,0.9975,0.9987,0.9988
+4,Unbalanced,Lightgbm,0.9999,1.0,0.9945,0.9972,0.9972
+5,ADASYN,Logistic Regression,0.6623,0.0124,0.416,0.024,0.5404
+6,ADASYN,Decision Tree,0.9998,0.992,0.993,0.9925,0.9965
+7,ADASYN,Random Forest,0.9999,0.999,0.9945,0.9967,0.9972
+8,ADASYN,XGboost,1.0,0.998,0.9995,0.9988,0.9997
+9,ADASYN,Lightgbm,0.9999,0.998,0.994,0.996,0.997
+10,RandomOverSampler,Logistic Regression,0.6024,0.0167,0.6685,0.0325,0.6351
+11,RandomOverSampler,Decision Tree,0.9999,0.995,0.9905,0.9927,0.9952
+12,RandomOverSampler,Random Forest,1.0,1.0,0.995,0.9975,0.9975
+13,RandomOverSampler,XGboost,1.0,1.0,0.9995,0.9997,0.9998
+14,RandomOverSampler,Lightgbm,1.0,1.0,0.9975,0.9987,0.9988
+15,KMeansSMOTE,Logistic Regression,0.6023,0.0163,0.652,0.0317,0.6269
+16,KMeansSMOTE,Decision Tree,0.9998,0.9865,0.9895,0.988,0.9947
+17,KMeansSMOTE,Random Forest,0.9999,1.0,0.994,0.997,0.997
+18,KMeansSMOTE,XGboost,1.0,1.0,0.999,0.9995,0.9995
+19,KMeansSMOTE,Lightgbm,1.0,1.0,0.996,0.998,0.998
+20,SMOTE,Logistic Regression,0.6024,0.0165,0.66,0.0321,0.6309
+21,SMOTE,Decision Tree,0.9997,0.9792,0.9905,0.9848,0.9951
+22,SMOTE,Random Forest,1.0,1.0,0.998,0.999,0.999
+23,SMOTE,XGboost,1.0,0.9995,0.9995,0.9995,0.9997
+24,SMOTE,Lightgbm,1.0,1.0,0.9975,0.9987,0.9988
+25,BorderlineSMOTE,Logistic Regression,0.7066,0.0108,0.3115,0.0208,0.511
+26,BorderlineSMOTE,Decision Tree,0.9997,0.9851,0.9885,0.9868,0.9942
+27,BorderlineSMOTE,Random Forest,0.9999,1.0,0.9905,0.9952,0.9952
+28,BorderlineSMOTE,XGboost,1.0,0.999,0.999,0.999,0.9995
+29,BorderlineSMOTE,Lightgbm,0.9999,0.9975,0.993,0.9952,0.9965
+30,SVMSMOTE,Logistic Regression,0.6746,0.0129,0.4165,0.025,0.5469
+31,SVMSMOTE,Decision Tree,0.9998,0.9881,0.997,0.9925,0.9984
+32,SVMSMOTE,Random Forest,1.0,0.9995,0.999,0.9992,0.9995
+33,SVMSMOTE,XGboost,1.0,0.998,0.9995,0.9988,0.9997
+34,SVMSMOTE,Lightgbm,1.0,0.9965,0.9995,0.998,0.9997
