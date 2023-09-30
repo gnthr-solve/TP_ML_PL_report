@@ -45,6 +45,8 @@ such as presenting computational complexity quadratic in the size of the minorit
 	\end{figure}
 \end{comment}
 
+\subsubsection{SVM-SMOTE}
+SVM-SMOTE (Support Vector Machine Synthetic Minority Over-sampling Technique) is another extension of the SMOTE. SVM-SMOTE first trains an SVM classifier on the imbalanced dataset. The samples that lie near the decision boundary (i.e., the borderline samples) are identified. These are the samples that are difficult to classify and are more likely to benefit from over-sampling and once they are identified, SMOTE is applied selectively only to these samples. This ensures that synthetic samples are generated where they are most needed, near the decision boundary. The main idea behind SVM-SMOTE is to focus the over-sampling effort on the samples that are most informative or challenging for the SVM classifier. \cite{Han2005}
 
 \subsubsection{Borderline SMOTE}
 
