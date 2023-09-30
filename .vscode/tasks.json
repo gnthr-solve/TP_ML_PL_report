@@ -1,0 +1,49 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build LaTeX Project",
+            "type": "shell",
+            "command": "pdflatex",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "%DOC%"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": {
+                "owner": "latex",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4
+                }
+            }
+        },
+        {
+            "label": "Clean LaTeX Project",
+            "type": "shell",
+            "command": "latexmk",
+            "args": [
+                "-c"
+            ],
+            "group": {
+                "kind": "clean",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ]
+}
