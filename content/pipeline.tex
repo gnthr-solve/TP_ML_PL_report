@@ -35,6 +35,7 @@ This is to some extend inevitable as the involved algorithms are complex and the
 but the previous pipelines also created large additional overhead this approach was intended to reduce.
 
 In the following we give a more detailed description of the created pipeline versions.
+The entire codebase of this project can be found on our \href{https://github.com/gnthr-solve/TP_ML_Pipeline}{github repository}.
 
 \subsection{First pipeline approach}
 
@@ -788,6 +789,7 @@ Furthermore one could create custom versions of the \texttt{imblearn} balancing 
 in favour of efficient serialisation that makes greater use of the optimised matrix operations of modern GPUs.
 The FMLP approach allows to test various balancers and classifiers with the freedom to set all parameters for each of them.
 It does not however enable serialised experiments where different parameter sets are passed to the same balancer or classifier without additional exterior iteration.
+
 
 
 
